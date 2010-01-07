@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent"
+   android:orientation="vertical"
+   android:background="#ffffffff"
+   >
+  <!-- html is displayed within the eink display -->
+  <WebView
+     android:layout_width="600px"
+     android:layout_height="740px"
+     android:id="@+id/webview"
+     />
+  <FrameLayout
+     android:layout_width="600px"
+     android:layout_height="20px"/>
+  <!-- From here onwards is the real layout -->
+  <FrameLayout
+     android:layout_width="480px"
+     android:layout_height="144px">
+    <ViewAnimator
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent"
+       android:id="@+id/rootanimator"
+       >
+      <FrameLayout
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent"
+       android:id="@+id/framea"/>
+      <FrameLayout
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent"
+       android:id="@+id/frameb"/>
+    </ViewAnimator>
+    <TextView
+       android:layout_width="fill_parent"
+       android:layout_height="wrap_content"
+       android:paddingLeft="380px"
+       style="@style/TitleSmallText"
+       android:id="@+id/status"
+       />
+  </FrameLayout>
+</LinearLayout>

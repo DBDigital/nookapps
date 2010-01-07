@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Trook</string>
+    <string name="view_text">View Page</string>
+    <string name="feed_text">Fetch</string>
+    <string name="prev_text">Previous</string>
+    <string name="loading_text">Fetching...</string>
+    <string name="mp3_download_text">Download</string>
+    <string name="epub_download_text">Download</string>
+    <string name="apk_download_text">Install</string>
+</resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>default_root_feed</id>
+  <title>Trook</title>
+  <updated>2009-12-26T17:58:39Z</updated>
+  <author><name>Trook</name></author>
+  <entry>
+    <title>Feedbooks</title>
+    <link type="application/atom+xml" href="http://www.feedbooks.com/catalog.atom"/>
+    <id>http://www.feedbooks.com/catalog.atom</id>
+    <content type="text">Free books, downloadable feeds and more</content>
+  </entry>
+  <entry>
+    <title>New York Times</title>
+    <link type="application/atom+xml" href="http://www.nytimes.com/services/xml/rss/nyt/HomePage.xml"/>
+    <id>http://www.nytimes.com/services/xml/rss/nyt/HomePage.xml</id>
+    <content type="text">New york times</content>
+  </entry>
+  <entry>
+    <title>Boing boing</title>
+    <link type="application/atom+xml" href="http://feeds.boingboing.net/boingboing/iBag"/>
+    <id>http://feeds.boingboing.net/boingboing/iBag</id>
+    <content type="text">A directory of wonderful things.</content>
+  </entry>
+  <entry>
+    <title>PRI's The World</title>
+    <link type="application/atom+xml" href="http://www.theworld.org/rss/best.xml"/>
+    <id>http://www.theworld.org/rss/best.xml</id>
+    <content type="text">Each week, some of our staff members get together to bring you highlights from our coverage, and to give you a sneak peek behind the scenes</content>
+  </entry>
+  <entry>
+    <title>More apps</title>
+    <link type="application/atom+xml" href="http://nookapps.googlecode.com/svn/trunk/feed/appfeed.xml"/>
+    <id>http://nookapps.googlecode.com/svn/trunk/appfeed.xml</id>
+    <content type="text">More nook apps here</content>
+  </entry>
+
+
+</feed>
