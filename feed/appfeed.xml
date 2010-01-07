@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>http://nookapps.googlecode.com/svn/trunk/feed/appfeed.xml</id>
+  <title>Nook related</title>
+  <author><name>Trook</name></author>
+  <entry>
+    <title>HOWTO</title>
+    <link type="text/html">http://nookapps.googlecode.com/svn/trunk/feed/howto.html</link>
+    <content type="text">How to enable your nook to install market applications</content>
+  </entry>
+  <entry>
+    <title>Pandora</title>
+    <link type="application/vnd.android.package-archive"
+          href="http://pandora.android.s3.amazonaws.com/pandora.apk"/>
+    <id>http://pandora.android.s3.amazonaws.com/pandora.apk</id>
+    <content type="text">Pandora on the nook</content>
+  </entry>
+</feed>
