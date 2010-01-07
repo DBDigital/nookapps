@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="TitleSmallText">
+    <item name="android:textSize">12px</item>
+    <item name="android:textColor">#fff</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:singleLine">true</item>
+  </style>
+  <style name="TitleText">
+    <item name="android:textSize">14px</item>
+    <item name="android:textColor">#fff</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:singleLine">true</item>
+  </style>
+  <style name="TitleBar">
+    <item name="android:background">#708090</item>
+  </style>
+  <style name="BlueButton">
+    <item name="android:textSize">14px</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textColor">#fff</item>
+    <item name="android:gravity">center_vertical|center_horizontal</item>
+    <item name="android:background">@drawable/blue_button_normal</item>
+  </style>
+  <style name="BlueButtonInset">
+    <item name="android:textSize">14px</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:textColor">#fff</item>
+    <item name="android:gravity">center_vertical|center_horizontal</item>
+    <item name="android:background">@drawable/blue_button_inset</item>
+  </style>
+</resources>
