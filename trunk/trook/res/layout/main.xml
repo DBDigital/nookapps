@@ -9,12 +9,11 @@
   <!-- html is displayed within the eink display -->
   <WebView
      android:layout_width="600px"
-     android:layout_height="740px"
+     android:layout_height="760px"
      android:id="@+id/webview"
+     android:paddingBottom="10px"
      />
-  <FrameLayout
-     android:layout_width="600px"
-     android:layout_height="20px"/>
+
   <!-- From here onwards is the real layout -->
   <FrameLayout
      android:layout_width="480px"
