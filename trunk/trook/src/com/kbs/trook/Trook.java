@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.widget.TextView;
 import android.widget.EditText;
 import android.webkit.WebView;
+import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -56,6 +57,7 @@ public class Trook extends Activity
         m_webview = (WebView) findViewById(R.id.webview);
         m_webview.setClickable(false);
         m_webview.getSettings().setJavaScriptEnabled(true);
+        m_webview.getSettings().setTextSize(WebSettings.TextSize.LARGER);
         m_webview.setWebViewClient(new WVClient());
         m_webview.setOnKeyListener(new WVPager());
         m_va = (ViewAnimator) findViewById(R.id.rootanimator);
