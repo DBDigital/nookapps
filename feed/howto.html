@@ -1,0 +1,25 @@
+<html><head><title>Installing Apps</title></head>
+<body>
+<h3>How to configure your nook to install apps</h3>
+<p>You'll need to allow your nook to install 3rd party applications
+to install any of these apps here.</p>
+
+<p>YMMV, but what I've done is to get an <tt>adb</tt> shell on
+the nook -- and if you're reading this, you probably have figured
+out how to do it already! Then, I run</p>
+
+<pre>
+# cd /data/data/com.android.providers.settings/databases
+# sqlite3 settings.db
+</pre>
+<p>Here, you'll find a table called <tt>secure</tt>, and you need
+to update this table and set <tt>install_non_market_apps</tt> to
+<tt>1</tt>. Something like</p>
+<pre>
+update secure set value=1 where name='install_non_market_apps';
+</pre>
+
+<p>ought to do it.</p>
+</body>
+</html>
+
