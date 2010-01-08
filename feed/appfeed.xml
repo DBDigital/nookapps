@@ -9,10 +9,17 @@
     <content type="text">How to enable your nook to install market applications</content>
   </entry>
   <entry>
-    <title>Pandora</title>
+    <title>Nook Launcher</title>
     <link type="application/vnd.android.package-archive"
-          href="http://pandora.android.s3.amazonaws.com/pandora.apk"/>
-    <id>http://pandora.android.s3.amazonaws.com/pandora.apk</id>
-    <content type="text">Pandora on the nook</content>
+          href="http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk"/>
+    <id>http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk</id>
+    <content type="text">A simplistic app launcher</content>
+  </entry>
+  <entry>
+    <title>Nook Browser</title>
+    <link type="application/vnd.android.package-archive"
+          href="http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk"/>
+    <id>http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk</id>
+    <content type="text">A simplistic app launcher</content>
   </entry>
 </feed>

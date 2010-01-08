@@ -24,7 +24,7 @@
        style="@style/BlueButtonInset"
        />
     <TextView
-       android:layout_width="335px"
+       android:layout_width="260px"
        android:layout_height="fill_parent"
        android:gravity="center_vertical|left"
        style="@style/TitleText"
@@ -33,6 +33,14 @@
        />
     <ImageButton
        android:layout_marginLeft="10px"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:gravity="center"
+       android:src="@drawable/settings_button"
+       android:id="@+id/settings"
+       style="@style/BlueButton"/>
+    <ImageButton
+       android:layout_marginLeft="30px"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
        android:gravity="center"

@@ -7,12 +7,15 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.widget.TextView;
+import android.widget.EditText;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.app.Dialog;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.Button;
@@ -67,12 +70,19 @@ public class Trook extends Activity
             (PowerManager.SCREEN_DIM_WAKE_LOCK, TAG+":"+hashCode());
         m_powerlock.setReferenceCounted(false);
 
-        // populate with whatever is our root URL
-        SharedPreferences settings =
-            getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
-        String rootUri =
-            settings.getString(TROOK_ROOT_URI, null);
+        m_feed_url_dialog = new Dialog(this);
+        m_feed_url_dialog.setContentView(R.layout.feed_url_dialog);
+        m_feed_url_dialog.setTitle("Set root feed");
+        m_feed_url_dialog.setCancelable(true);
+        m_feed_url_dialog.setCanceledOnTouchOutside(true);
 
+        m_feed_url_et = (EditText)
+            m_feed_url_dialog.findViewById(R.id.feed_url);
+        m_feed_url_et.setOnKeyListener(new FeedUrlListener());
+
+        String rootUri = getFeedRoot();
+
+        // populate with whatever is our root URL
         if (rootUri != null) {
             pushViewFromUri(rootUri);
         }
@@ -87,9 +97,22 @@ public class Trook extends Activity
         }
     }
 
+    private void doDialog()
+    {
+        String s = getFeedRoot();
+        if (s == null) { s = "http://"; }
+        m_feed_url_et.setText(s);
+        m_feed_url_et.requestFocus();
+        m_feed_url_dialog.show();
+        InputMethodManager imm =
+            (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        imm.showSoftInput(m_webview,InputMethodManager.SHOW_FORCED);
+    }
+
     @Override
     public void onDestroy()
     {
+        super.onDestroy();
         m_feedmanager.shutdown();
         m_feedviewcache.flush();
         synchronized (m_wifisync) {
@@ -129,7 +152,26 @@ public class Trook extends Activity
              msg, Toast.LENGTH_SHORT).show();
     }
 
+    final String getFeedRoot()
+    {
+        SharedPreferences settings =
+            getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
+        return settings.getString(TROOK_ROOT_URI, null);
+    }
 
+    final void setFeedRoot(String s)
+    {
+        SharedPreferences settings =
+            getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
+        SharedPreferences.Editor editor = settings.edit();
+        if (s != null) {
+            editor.putString(TROOK_ROOT_URI, s);
+        }
+        else {
+            editor.remove(TROOK_ROOT_URI);
+        }
+        editor.commit();
+    }
     // Only to be called from the UI thread
     final void pushViewFromReader(String uri, Reader r)
     {
@@ -348,6 +390,9 @@ public class Trook extends Activity
         ImageButton reload = (ImageButton)
             root.findViewById(R.id.reload);
         reload.setOnClickListener(new Reloader(uri));
+        ImageButton stngs = (ImageButton)
+            root.findViewById(R.id.settings);
+        stngs.setOnClickListener(m_settings_clicker);
 
         Button prev = (Button)
             root.findViewById(R.id.prev);
@@ -399,6 +444,12 @@ public class Trook extends Activity
         }
 
         // Drop the feedview into the non-displayed view
+        if (cached.m_root.getParent() != null) {
+            if (cached.m_root.getParent() instanceof ViewGroup) {
+                ((ViewGroup) cached.m_root.getParent()).
+                    removeView(cached.m_root);
+            }
+        }
         if (m_usinga) {
             m_frameb.removeAllViews();
             m_frameb.addView(cached.m_root);
@@ -609,7 +660,7 @@ public class Trook extends Activity
         if (m_webview != null) {
             int cury = m_webview.getScrollY();
             if (cury == 0) { return; }
-            int newy = cury - 740;
+            int newy = cury - WEB_SCROLL_PX;
             if (newy < 0) { newy = 0; }
             m_webview.scrollTo(0, newy);
         }
@@ -618,9 +669,9 @@ public class Trook extends Activity
     {
         if (m_webview != null) {
             int cury = m_webview.getScrollY();
-            int hmax = m_webview.getContentHeight() - 740;
+            int hmax = m_webview.getContentHeight() - WEB_SCROLL_PX;
             if (hmax < 0) { hmax = 0; }
-            int newy = cury + 740;
+            int newy = cury + WEB_SCROLL_PX;
             if (newy > hmax) { newy = hmax; }
             if (cury != newy) {
                 m_webview.scrollTo(0, newy);
@@ -815,6 +866,38 @@ public class Trook extends Activity
         private final String m_message;
     }
 
+    private class FeedUrlListener
+        implements View.OnKeyListener
+    {
+	public boolean onKey(View view, int keyCode, KeyEvent keyEvent)
+        {
+            if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
+                if (view instanceof EditText) {
+                    EditText et = (EditText) view;
+                    if (keyCode == SOFT_KEYBOARD_CLEAR ) {
+                        et.setText("");
+                    }
+                    else if (keyCode == SOFT_KEYBOARD_SUBMIT) {
+                        String text = et.getText().toString();
+                        if ((text != null) && (text.length() >0)) {
+                            Trook.this.setFeedRoot(text);
+                            Trook.this.pushViewFromUri(text);
+                        }
+                        else {
+                            Trook.this.setFeedRoot(null);
+                        }
+                        Trook.this.m_feed_url_dialog.dismiss();
+                    }
+                    else if (keyCode ==  SOFT_KEYBOARD_CANCEL) {
+                        Trook.this.m_feed_url_dialog.dismiss();
+                    }
+                }
+            }
+            return false;
+	}
+    }
+
+
     private FeedManager m_feedmanager;
     private FeedViewCache m_feedviewcache;
     private FeedViewCache.FeedView m_curfeedview;
@@ -825,10 +908,18 @@ public class Trook extends Activity
     private ViewAnimator m_va;
     private FrameLayout m_framea;
     private FrameLayout m_frameb;
+    private Dialog m_feed_url_dialog;
+    private EditText m_feed_url_et;
     private boolean m_usinga = true;
     private Map<String,String> m_parents = new HashMap<String,String>();
     private Map<String,String> m_titles = new HashMap<String,String>();
     private WebView m_webview;
+    private final View.OnClickListener m_settings_clicker =
+        new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            { Trook.this.doDialog(); }
+        };
 
     private TextView m_status;
     private Stack<FeedInfo> m_stack = new Stack<FeedInfo>();
@@ -846,5 +937,9 @@ public class Trook extends Activity
     private static final int NOOK_PAGE_DOWN_KEY_RIGHT = 97;
     private static final int NOOK_PAGE_UP_KEY_LEFT = 96;
     private static final int NOOK_PAGE_DOWN_KEY_LEFT = 95;
+    private static final int SOFT_KEYBOARD_CLEAR=-13;
+    private static final int SOFT_KEYBOARD_SUBMIT=-8;
+    private static final int SOFT_KEYBOARD_CANCEL=-3;
 
+    private static final int WEB_SCROLL_PX = 700;
 }

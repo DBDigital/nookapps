@@ -5,10 +5,10 @@
   <updated>2009-12-26T17:58:39Z</updated>
   <author><name>Trook</name></author>
   <entry>
-    <title>Feedbooks</title>
-    <link type="application/atom+xml" href="http://www.feedbooks.com/catalog.atom"/>
-    <id>http://www.feedbooks.com/catalog.atom</id>
-    <content type="text">Free books, downloadable feeds and more</content>
+    <title>Lexcycle Online Catalog</title>
+    <link type="application/atom+xml" href="http://nookapps.googlecode.com/svn/trunk/feed/freelexcycle.xml"/>
+    <id>http://nookapps.googlecode.com/svn/trunk/feed/freelexcycle.xml</id>
+    <content type="text">Online catalog of free books, hosted by Lexcycle</content>
   </entry>
   <entry>
     <title>New York Times</title>
@@ -29,11 +29,9 @@
     <content type="text">Each week, some of our staff members get together to bring you highlights from our coverage, and to give you a sneak peek behind the scenes</content>
   </entry>
   <entry>
-    <title>More apps</title>
+    <title>Nook related</title>
     <link type="application/atom+xml" href="http://nookapps.googlecode.com/svn/trunk/feed/appfeed.xml"/>
     <id>http://nookapps.googlecode.com/svn/trunk/appfeed.xml</id>
-    <content type="text">More nook apps here</content>
+    <content type="text">Some nook specific stuff here</content>
   </entry>
-
-
 </feed>
