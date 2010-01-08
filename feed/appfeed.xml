@@ -5,7 +5,7 @@
   <author><name>Trook</name></author>
   <entry>
     <title>HOWTO</title>
-    <link>http://nookapps.googlecode.com/svn/trunk/feed/howto.html</link>
+    <link type="text/html" href="http://nookapps.googlecode.com/svn/trunk/feed/howto.html"/>
     <content type="text">How to enable your nook to install market applications</content>
   </entry>
   <entry>
