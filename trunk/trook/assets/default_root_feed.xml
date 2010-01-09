@@ -17,10 +17,10 @@
     <content type="text">New york times</content>
   </entry>
   <entry>
-    <title>Boing boing</title>
-    <link type="application/atom+xml" href="http://feeds.boingboing.net/boingboing/iBag"/>
-    <id>http://feeds.boingboing.net/boingboing/iBag</id>
-    <content type="text">A directory of wonderful things.</content>
+    <title>USA Today</title>
+    <link type="application/atom+xml" href="http://rssfeeds.usatoday.com/usatoday-NewsTopStories"/>
+    <id>http://rssfeeds.usatoday.com/usatoday-NewsTopStories</id>
+    <content type="text">News - Top Stories</content>
   </entry>
   <entry>
     <title>PRI's The World</title>

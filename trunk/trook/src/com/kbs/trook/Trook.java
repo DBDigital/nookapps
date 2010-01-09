@@ -82,27 +82,15 @@ public class Trook extends Activity
             m_feed_url_dialog.findViewById(R.id.feed_url);
         m_feed_url_et.setOnKeyListener(new FeedUrlListener());
 
-        String rootUri = getFeedRoot();
-
-        // populate with whatever is our root URL
-        if (rootUri != null) {
-            pushViewFromUri(rootUri);
-        }
-        else {
-            pushViewFromReader
-                (DEFAULT_FEED_XML,
-                 new BufferedReader
-                 (new InputStreamReader
-                  (getResources()
-                   .openRawResource
-                   (R.raw.default_root_feed))));
-        }
+        pushViewFromUri(getFeedRoot());
     }
 
     private void doDialog()
     {
         String s = getFeedRoot();
-        if (s == null) { s = "http://"; }
+        if (DEFAULT_FEED_URI.equals(s)) {
+            s = "http://";
+        }
         m_feed_url_et.setText(s);
         m_feed_url_et.requestFocus();
         m_feed_url_dialog.show();
@@ -158,7 +146,8 @@ public class Trook extends Activity
     {
         SharedPreferences settings =
             getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
-        return settings.getString(TROOK_ROOT_URI, null);
+        return settings.getString
+            (TROOK_ROOT_URI, DEFAULT_FEED_URI);
     }
 
     final void setFeedRoot(String s)
@@ -190,7 +179,7 @@ public class Trook extends Activity
     final void reloadViewToUri(String uri)
     {
         // special case for our root
-        if (DEFAULT_FEED_XML.equals(uri)) {
+        if (DEFAULT_FEED_URI.equals(uri)) {
             return;
         }
 
@@ -218,18 +207,6 @@ public class Trook extends Activity
 
     final void asyncLoadFeedFromUri(String uri)
     {
-        // Special case
-        if (DEFAULT_FEED_XML.equals(uri)) {
-            Reader r =
-                new BufferedReader
-                (new InputStreamReader
-                 (getResources()
-                  .openRawResource
-                  (R.raw.default_root_feed)));
-            asyncLoadFeedFromReader(uri, r);
-            return;
-        }
-
         m_feedmanager.asyncLoadFeedFromUri(uri);
     }        
 
@@ -592,7 +569,13 @@ public class Trook extends Activity
                 doit.setOnClickListener(new LaunchBrowser(href));
                 ib.setImageResource(R.drawable.webkit);
                 did_something = true;
-                // but keep looking, in case we find a better fit.
+                String pr = li.getAttribute("preferred");
+                if ("true".equals(pr)) {
+                    break;
+                }
+                else {
+                    // keep looking, in case we find a better fit.
+                }
             }
             else {
                 // Log.d(TAG, "Skipping unknown type: "+type);
@@ -932,7 +915,8 @@ public class Trook extends Activity
     private final static long POWER_DELAY = 120*1000;
     private final static long WIFI_TIMEOUT = 60*1000;
     private final static long WIFI_HOLDON = 120*1000; // extra grace period
-    private final static String DEFAULT_FEED_XML = "default_root_feed.xml";
+    private final static String DEFAULT_FEED_URI =
+        "asset:default_root_feed.xml";
 
     // magic {thanks hari!}
     private static final int NOOK_PAGE_UP_KEY_RIGHT = 98;

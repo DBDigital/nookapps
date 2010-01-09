@@ -114,6 +114,14 @@ public class FeedInfo
         { return m_attrs.get(key); }
         public void setAttribute(String key, String val)
         { m_attrs.put(key, val); }
+        public String toString()
+        {
+            StringBuffer sb = new StringBuffer("link: ");
+            for (String k: m_attrs.keySet()) {
+                sb.append(" "+k+"="+m_attrs.get(k));
+            }
+            return sb.toString();
+        }
 
         private Map<String,String> m_attrs=
             new HashMap<String,String>();
