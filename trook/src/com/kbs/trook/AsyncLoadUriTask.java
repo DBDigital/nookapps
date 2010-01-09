@@ -34,6 +34,11 @@ public class AsyncLoadUriTask
 
         m_uri = uris[0];
 
+        // First see if this is a local asset reference
+        if (m_uri.startsWith("asset:")) {
+            return makeReaderFromAsset();
+        }
+
         // See if we have it in our cache already
         Reader r = maybeCached(m_uri);
         if (r != null) {
@@ -61,6 +66,24 @@ public class AsyncLoadUriTask
         }
         finally {
             m_trook.releaseWifi();
+        }
+    }
+
+    private final Reader makeReaderFromAsset()
+    {
+        String reference =
+            m_uri.substring(6); // Strip off "asset:"
+
+        try {
+            return
+                new BufferedReader
+                (new InputStreamReader
+                 (m_trook.getResources()
+                  .getAssets()
+                  .open(reference)));
+        }
+        catch (IOException ioe) {
+            throw new IllegalArgumentException(ioe);
         }
     }
 

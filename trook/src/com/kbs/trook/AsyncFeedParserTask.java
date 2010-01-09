@@ -14,11 +14,14 @@ import java.io.IOException;
 public class AsyncFeedParserTask
     extends AsyncTask<Reader,FeedInfo.EntryInfo,String>
 {
-    public AsyncFeedParserTask(String u, Trook t)
+    public AsyncFeedParserTask(String u, Trook t, ILinkFixer fixer)
     {
         m_basefile = u;
         m_trook = t;
+        m_fixer = fixer;
     }
+    public AsyncFeedParserTask(String u, Trook t)
+    { this(u, t, null); }
 
     @Override
     protected String doInBackground(Reader... inps)
@@ -141,6 +144,14 @@ public class AsyncFeedParserTask
                 li.setAttribute("href", P.collectText(p));
                 ei.addLink(li);
             }
+            else if (curtag.equals("origLink")) { // pheedo special
+                FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
+                li.setAttribute("href", fix(P.collectText(p)));
+                // backdoor info to displayer that URL is likely
+                // to be the best bet.
+                li.setAttribute("preferred", "true");
+                ei.addLink(li);
+            }
             else if (curtag.equals("description")) {
                 ei.setContent(P.collectText(p));
             }
@@ -193,6 +204,16 @@ public class AsyncFeedParserTask
         }
     }
 
+    private final String fix(String fix)
+    {
+        if (m_fixer != null) {
+            return m_fixer.fix(fix);
+        }
+        else {
+            return fix;
+        }
+    }
+
     private final void parseFeed(XmlPullParser p)
         throws IOException, XmlPullParserException
     {
@@ -219,10 +240,43 @@ public class AsyncFeedParserTask
             else if (curtag.equals("entry")) {
                 parseEntry(p);
             }
+            else if (curtag.equals("link")) {
+                FeedInfo.LinkInfo li = parseLink(p);
+                Log.d(TAG, "Got link :"+li.toString());
+                if ("next".equals(li.getAttribute("rel")) &&
+                    (li.getAttribute("href") != null)) {
+                    Log.d(TAG, "Found a next tag!");
+                    // Defer this to the end, by making a virtual
+                    // entry info that contains just this link.
+                    m_next = new FeedInfo.EntryInfo(m_fi);
+                    m_next.setId(li.getAttribute("href"));
+                    m_next.addLink(li);
+                    String ttl = li.getAttribute("title");
+                    if (ttl != null) {
+                        m_next.setTitle(ttl);
+                    }
+                    else {
+                        m_next.setTitle
+                            (m_trook.getResources()
+                             .getText(R.string.next_title)
+                             .toString());
+                    }
+                    m_next.setContent("");
+                }
+            }
             else {
                 // skip everything else
                 P.skipThisBlock(p);
             }
+        }
+
+        // At the end, append a "next" EntryInfo, if we found one
+        // along the way.
+        if (m_next != null) {
+            Log.d(TAG, "ADDED a next entry!!!");
+            m_fi.addEntry(m_next);
+            publishProgress(m_next);
+            m_next = null; // just to be safe.
         }
     }
 
@@ -329,9 +383,11 @@ public class AsyncFeedParserTask
 
     private FeedInfo m_fi;
     private boolean m_pushedTitle = false;
+    private FeedInfo.EntryInfo m_next = null;
     private final String m_basefile;
     private final Trook m_trook;
     private String m_error;
+    private final ILinkFixer m_fixer;
 
     private final static String TAG ="async-feed-parser";
 }
