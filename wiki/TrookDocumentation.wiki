@@ -1,0 +1,40 @@
+#summary Trook Documentation
+#labels Featured
+
+= Using Trook =
+
+I hope you find the application generally straightforward to use; but there
+are a few things that will undoubtedly stymie you, so here's the scoop on
+some of this.
+
+To change the default feed root, tap on the little gear looking icon on
+the title bar, and you can enter the path to a feed of your own choice.
+
+If you change your mind and want to reset the feed to whatever comes
+by default -- please go back to the feed entry dialog, and submit an
+empty text box, which will cause it to start using the default feed.
+
+The application offers no feed management per-se, so you will probably find it best
+to use an online feed aggregator to manage your feeds, and point Trook to
+the aggregated feed. It is probably best to create Atom feeds, although Trook
+does make attempts to understand RSS feeds as well.
+
+Please keep in mind that you can always link to other feeds from your feed [that's how
+the hierarchies are actually done.] If you want to point  back to the default feed from
+your own feed, please use this URI `asset:default_root_feed.xml`
+
+For example, if you were creating your own Atom feed, you'd add a section like
+this:
+{{{
+  <entry>
+    <title>Default Trook catalog</title>
+    <link type="application/atom+xml" href="asset:default_root_feed.xml"/>
+    <id>asset:default_root_feed.xml</id>
+    <content type="text">Trook's default catalog</content>
+  </entry>
+}}}
+
+Trook understands Stanza catalogs, so in principle (can someone verify
+this?) you should be able to access your Calibre-managed books from the Nook,
+once you enable Calibre's server, and you have a way to access that server over
+the internet.
