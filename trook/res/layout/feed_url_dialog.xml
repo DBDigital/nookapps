@@ -16,7 +16,7 @@
      android:layout_height="50.0px"
      android:singleLine="true"
      android:textSize="24px"
-     android:text="Set Root Feed URL (or clear to reset)"
+     android:text="Change Default Feed"
      />
   <EditText
      android:layout_width="fill_parent"

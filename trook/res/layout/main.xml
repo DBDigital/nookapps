@@ -24,13 +24,13 @@
        android:id="@+id/rootanimator"
        >
       <FrameLayout
-       android:layout_width="fill_parent"
-       android:layout_height="fill_parent"
-       android:id="@+id/framea"/>
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:id="@+id/framea"/>
       <FrameLayout
-       android:layout_width="fill_parent"
-       android:layout_height="fill_parent"
-       android:id="@+id/frameb"/>
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:id="@+id/frameb"/>
     </ViewAnimator>
     <TextView
        android:layout_width="fill_parent"
