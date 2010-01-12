@@ -3,17 +3,21 @@ package com.kbs.trook;
 import android.util.Log;
 import android.content.Context;
 import com.kbs.backport.AsyncTask;
+import android.net.Uri;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.File;
 import java.io.StringReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.HttpURLConnection;
+
 
 public class AsyncLoadUriTask
     extends AsyncTask<String,String,Reader>
@@ -37,6 +41,12 @@ public class AsyncLoadUriTask
         // First see if this is a local asset reference
         if (m_uri.startsWith("asset:")) {
             return makeReaderFromAsset();
+        }
+
+        // Check for file: urls too
+        if (m_uri.startsWith("file:")) {
+            // This we want to grab locally
+            return makeReaderFromFile();
         }
 
         // See if we have it in our cache already
@@ -66,6 +76,35 @@ public class AsyncLoadUriTask
         }
         finally {
             m_trook.releaseWifi();
+        }
+    }
+
+    private final Reader makeReaderFromFile()
+    {
+        Log.d(TAG, "Attempting to open file uri: `"+m_uri+"'");
+        Uri uri = Uri.parse(m_uri);
+        String path = uri.getPath();
+        if (path == null) {
+            error("Could not find path from `"+m_uri+"'");
+            return null;
+        }
+
+        File f = new File(path);
+        try {
+            if (!f.exists()) {
+                error("Path not found `"+f+"'");
+                return null;
+            }
+
+            return
+                new BufferedReader
+                (new InputStreamReader
+                 (new FileInputStream(f)));
+        }
+        catch (Throwable th) {
+            Log.d(TAG, "Failed to open `"+f+"'", th);
+            error("Could not open `"+f+": "+th.toString());
+            return null;
         }
     }
 

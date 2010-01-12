@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.widget.TextView;
@@ -31,6 +34,7 @@ import android.os.PowerManager;
 import android.widget.ViewAnimator;
 
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.File;
@@ -71,10 +75,9 @@ public class Trook extends Activity
         m_powerlock = pm.newWakeLock
             (PowerManager.SCREEN_DIM_WAKE_LOCK, TAG+":"+hashCode());
         m_powerlock.setReferenceCounted(false);
-
         m_feed_url_dialog = new Dialog(this);
         m_feed_url_dialog.setContentView(R.layout.feed_url_dialog);
-        m_feed_url_dialog.setTitle("Set root feed");
+        m_feed_url_dialog.setTitle("Load New Feed");
         m_feed_url_dialog.setCancelable(true);
         m_feed_url_dialog.setCanceledOnTouchOutside(true);
 
@@ -85,18 +88,36 @@ public class Trook extends Activity
         pushViewFromUri(getFeedRoot());
     }
 
+    private void maybeCreateFeedDirectory()
+        throws IOException
+    {
+        File f = new File(LOCAL_ROOT_XML_DIR);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+    }
+
     private void doDialog()
     {
-        String s = getFeedRoot();
-        if (DEFAULT_FEED_URI.equals(s)) {
-            s = "http://";
-        }
-        m_feed_url_et.setText(s);
+        m_feed_url_et.setText("");
+        m_feed_url_et.append("http://");
         m_feed_url_et.requestFocus();
         m_feed_url_dialog.show();
+        showSoftKeyboard();
+    }
+
+    private final void showSoftKeyboard()
+    {
         InputMethodManager imm =
             (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         imm.showSoftInput(m_webview,InputMethodManager.SHOW_FORCED);
+    }
+
+    private final void hideSoftKeyboard()
+    {
+        InputMethodManager imm =
+            (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(m_webview.getWindowToken(), 0);
     }
 
     @Override
@@ -142,15 +163,28 @@ public class Trook extends Activity
              msg, Toast.LENGTH_SHORT).show();
     }
 
-    final String getFeedRoot()
+    final String getFeedRootPrefs()
     {
+        // Priority: first the preferences
         SharedPreferences settings =
             getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
-        return settings.getString
-            (TROOK_ROOT_URI, DEFAULT_FEED_URI);
+        return settings.getString(TROOK_ROOT_URI, null);
     }
 
-    final void setFeedRoot(String s)
+    final String getFeedRoot()
+    {
+        String ret = getFeedRootPrefs();
+        if (ret == null) {
+            // next the file system
+            File f = new File(LOCAL_ROOT_XML_PATH);
+            if (f.exists()) {
+                return "file:///system/media/sdcard/my%20feeds/root.xml";
+            }
+        }
+        return DEFAULT_FEED_URI;
+    }
+
+    final void setFeedRootPrefs(String s)
     {
         SharedPreferences settings =
             getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
@@ -163,6 +197,7 @@ public class Trook extends Activity
         }
         editor.commit();
     }
+
     // Only to be called from the UI thread
     final void pushViewFromReader(String uri, Reader r)
     {
@@ -357,6 +392,86 @@ public class Trook extends Activity
         cached.m_title.setText(fi.getTitle());
     }
 
+    private final void maybeRemoveLocalFeed()
+    {
+        try {
+            File f = new File(LOCAL_ROOT_XML_PATH);
+            f.delete();
+        }
+        catch (Throwable ign) {}
+    }
+
+    private final void saveAsLocalFeed()
+    {
+        if (m_curfeedview == null) {
+            displayError("No feed here");
+            return;
+        }
+
+        String uri = m_curfeedview.m_uri;
+        if ((uri == null) ||
+            !(uri.startsWith("http://"))) {
+            displayError("Can only save http URLs\n"+uri);
+            return;
+        }
+
+        // Start off a download service to fetch the given
+        // uri to the default feed root.
+        try {
+            Intent i = new Intent();
+            i.setDataAndType
+                (Uri.parse(uri), "application/octet-stream");
+            i.setComponent
+                (new ComponentName
+                 ("com.kbs.trook", "com.kbs.trook.DownloadService"));
+            i.putExtra(DownloadService.TARGET, LOCAL_ROOT_XML_PATH);
+            startService(i);
+            displayShortMessage("Storing feed in the background");
+        }
+        catch (Throwable th) {
+            Log.d(TAG, "download failed", th);
+            displayError("Failed to load "+uri+"\n"+th);
+        }
+    }
+
+    @Override
+    public void onCreateContextMenu
+        (ContextMenu menu, View v, ContextMenu.ContextMenuInfo mi)
+    {
+        super.onCreateContextMenu(menu, v, mi);
+        menu.setHeaderTitle("Settings");
+        menu.add(Menu.NONE, CANCEL_ID, Menu.NONE, "Cancel");
+        menu.add(Menu.NONE, LOAD_ID, Menu.NONE, "Load a new feed");
+        menu.add(Menu.NONE, SAVE_ID, Menu.NONE,
+                 "Save this feed as the default");
+        menu.add(Menu.NONE, RESET_ID, Menu.NONE,
+                 "Restore default feed");
+        menu.add(Menu.NONE, CLOSE_ID, Menu.NONE,
+                 "Stop application");
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item)
+    {
+        switch (item.getItemId()) {
+        case LOAD_ID:
+            doDialog();
+            return super.onContextItemSelected(item);
+        case RESET_ID:
+            setFeedRootPrefs(null);
+            maybeRemoveLocalFeed();
+            return super.onContextItemSelected(item);
+        case CLOSE_ID:
+            finish();
+            return true;
+        case SAVE_ID:
+            saveAsLocalFeed();
+            return super.onContextItemSelected(item);
+        default:
+            return super.onContextItemSelected(item);
+        }
+    }
+
     private final FeedViewCache.FeedView
         makeFeedView(String uri)
     {
@@ -369,9 +484,11 @@ public class Trook extends Activity
         ImageButton reload = (ImageButton)
             root.findViewById(R.id.reload);
         reload.setOnClickListener(new Reloader(uri));
+
         ImageButton stngs = (ImageButton)
             root.findViewById(R.id.settings);
         stngs.setOnClickListener(m_settings_clicker);
+        registerForContextMenu(stngs);
 
         Button prev = (Button)
             root.findViewById(R.id.prev);
@@ -629,6 +746,10 @@ public class Trook extends Activity
             m_powerlock.acquire(POWER_DELAY);
         }
         NookUtils.setAppTitle(this, "Trook");
+        if (m_feed_url_dialog.isShowing()) {
+            m_feed_url_dialog.cancel();
+            hideSoftKeyboard();
+        }
     }
 
     @Override
@@ -637,6 +758,10 @@ public class Trook extends Activity
         super.onPause();
         if (m_powerlock != null) {
             m_powerlock.release();
+        }
+        if (m_feed_url_dialog.isShowing()) {
+            m_feed_url_dialog.cancel();
+            hideSoftKeyboard();
         }
     }
 
@@ -731,6 +856,7 @@ public class Trook extends Activity
                 dsi.setComponent
                     (new ComponentName
                      ("com.kbs.trook", "com.kbs.trook.DownloadService"));
+                maybeCreateFeedDirectory();
                 startService(dsi);
                 displayShortMessage("Starting download in the background");
             }
@@ -865,11 +991,11 @@ public class Trook extends Activity
                     else if (keyCode == SOFT_KEYBOARD_SUBMIT) {
                         String text = et.getText().toString();
                         if ((text != null) && (text.length() >0)) {
-                            Trook.this.setFeedRoot(text);
+                            Trook.this.setFeedRootPrefs(text);
                             Trook.this.pushViewFromUri(text);
                         }
                         else {
-                            Trook.this.setFeedRoot(null);
+                            Trook.this.setFeedRootPrefs(null);
                         }
                         Trook.this.m_feed_url_dialog.dismiss();
                     }
@@ -881,7 +1007,6 @@ public class Trook extends Activity
             return false;
 	}
     }
-
 
     private FeedManager m_feedmanager;
     private FeedViewCache m_feedviewcache;
@@ -899,6 +1024,7 @@ public class Trook extends Activity
     private Map<String,String> m_parents = new HashMap<String,String>();
     private Map<String,String> m_titles = new HashMap<String,String>();
     private WebView m_webview;
+
     private final View.OnClickListener m_settings_clicker =
         new View.OnClickListener() {
             @Override
@@ -915,8 +1041,12 @@ public class Trook extends Activity
     private final static long POWER_DELAY = 120*1000;
     private final static long WIFI_TIMEOUT = 60*1000;
     private final static long WIFI_HOLDON = 120*1000; // extra grace period
-    private final static String DEFAULT_FEED_URI =
+    public final static String DEFAULT_FEED_URI =
         "asset:default_root_feed.xml";
+    private final static String LOCAL_ROOT_XML_PATH =
+        "/system/media/sdcard/my feeds/root.xml";
+    private final static String LOCAL_ROOT_XML_DIR =
+        "/system/media/sdcard/my feeds";
 
     // magic {thanks hari!}
     private static final int NOOK_PAGE_UP_KEY_RIGHT = 98;
@@ -928,4 +1058,9 @@ public class Trook extends Activity
     private static final int SOFT_KEYBOARD_CANCEL=-3;
 
     private static final int WEB_SCROLL_PX = 700;
+    private static final int LOAD_ID = 1;
+    private static final int CLOSE_ID = 2;
+    private static final int CANCEL_ID = 3;
+    private static final int RESET_ID = 4;
+    private static final int SAVE_ID = 5;
 }
