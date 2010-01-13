@@ -3,20 +3,20 @@
 
 = Using Trook =
 
-== How do I load a different feed? ==
+==How do I load a feed of my choice?==
 
 Tap on the little gear looking icon on the title bar, and you can enter
 the path to a feed of your own choice. It's painful to enter text, I know.
 I'm sorry about that.
 
-== How do I change the startup feed?
+==How do I change the startup feed?==
 
 There are two ways to do this.
 
-=== Save a feed locally as your startup feed===
+===Save a feed locally as your startup feed===
 
 Tap on the gear icon to enter a feed from the network. Once it loads
-successfully, long click on the gear icon [2-3 seconds.] This will open
+successfully, long click on the gear icon (2-3 seconds.) This will open
 up a menu, and you can tap on the "Save this feed as the default" choice.
 
 Please note that this will actually download the file locally, and it will
@@ -33,7 +33,7 @@ gear icon, and the bottom has a "Stop application" command.
 === Copy a static file over USB ===
 
 It's best to create an Atom style feed (please use
-[http://code.google.com/p/nookapps/source/browse/trunk/trook/assets/default_root_feed.xml the default feed file] as an example.)
+[http://code.google.com/p/nookapps/source/browse/trunk/trook/assets/default_root_feed.xml  the default feed file] as an example.)
 
 Please validate this carefully, otherwise the application will fail on
 startup. You still recover the app, but you'll need to reconnect your
