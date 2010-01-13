@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.File;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.util.List;
 
 import com.kbs.util.ConnectUtils;
@@ -77,6 +79,7 @@ public class DownloadService
         }
 
         // protect the rest of this with a finally
+        boolean ok = false;
         try {
             if (!ConnectUtils.waitForService(this, TIMEOUT_WAIT)) {
                 bail("sorry, network was not established");
@@ -93,7 +96,22 @@ public class DownloadService
                 out = openFileOutput(target, MODE_WORLD_READABLE);
             }
 
-            inp = url.openStream();
+            Log.d(TAG, "Opening stream to "+url);
+            URLConnection connection = url.openConnection();
+            if (!(connection instanceof HttpURLConnection)) {
+                bail(url+": sorry, can only download http");
+                return;
+            }
+            HttpURLConnection huc = (HttpURLConnection) connection;
+            huc.setRequestProperty
+                ("User-agent", "trook-news-reader");
+            huc.connect();
+            if (huc.getResponseCode() != 200) {
+                bail(url+": "+huc.getResponseMessage());
+                return;
+            }
+
+            inp = huc.getInputStream();
             byte buf[] = new byte[8192];
 
             int count;
@@ -102,7 +120,9 @@ public class DownloadService
                 // Log.d(TAG, "Read "+count+" bytes");
                 out.write(buf, 0, count);
             }
+            Log.d(TAG, "Finished with "+url);
             out.flush();
+            ok = true;
         }
         catch (Exception ex) {
             bail("Sorry, exception "+ex.toString());
@@ -116,6 +136,11 @@ public class DownloadService
             if (out != null) {
                 try { out.close(); } catch (Throwable ign) {}
             }
+            if (!ok) {
+                try {
+                    makeFileFromTarget(target).delete();
+                } catch (Throwable ign) {}
+            }
             ConnectUtils.release(wakelock);
         }
 
@@ -124,13 +149,7 @@ public class DownloadService
 
         Log.d(TAG, "Finished downloading");
 
-        File targetfile;
-        if (target.startsWith("/")) {
-            targetfile = new File(target);
-        }
-        else {
-            targetfile = getFileStreamPath(target);
-        }
+        File targetfile = makeFileFromTarget(target);
 
         Intent msg = new Intent(Intent.ACTION_VIEW);
         msg.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -142,6 +161,16 @@ public class DownloadService
         else {
             Log.d(TAG, "Quiet exit");
             // bail("Download complete");
+        }
+    }
+
+    private final File makeFileFromTarget(String target)
+    {
+        if (target.startsWith("/")) {
+            return new File(target);
+        }
+        else {
+            return getFileStreamPath(target);
         }
     }
 
