@@ -441,7 +441,6 @@ public class Trook extends Activity
         super.onCreateContextMenu(menu, v, mi);
         menu.setHeaderTitle("Settings");
         menu.add(Menu.NONE, CANCEL_ID, Menu.NONE, "Cancel");
-        menu.add(Menu.NONE, LOAD_ID, Menu.NONE, "Load a new feed");
         menu.add(Menu.NONE, SAVE_ID, Menu.NONE,
                  "Save this feed as the default");
         menu.add(Menu.NONE, RESET_ID, Menu.NONE,
