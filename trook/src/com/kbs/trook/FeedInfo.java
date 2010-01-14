@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
+import java.net.URLEncoder;
 
 public class FeedInfo
 {
@@ -28,6 +29,11 @@ public class FeedInfo
     { m_entries.add(ei); }
     public List<EntryInfo> getEntries()
     { return m_entries; }
+
+    public void setSearch(SearchInfo si)
+    { m_si = si; }
+    public SearchInfo getSearchInfo()
+    { return m_si; }
 
     public void setId(String s)
     { m_id = s; }
@@ -49,6 +55,7 @@ public class FeedInfo
     private String m_id = null;
     private Date m_updated = null;
     private String m_icon = null;
+    private SearchInfo m_si = null;
     private List<EntryInfo> m_entries =
         new LinkedList<EntryInfo>();
 
@@ -98,6 +105,30 @@ public class FeedInfo
         private List<LinkInfo> m_links =
             new LinkedList<LinkInfo>();
         private Date m_updated;
+    }
+
+    public final static class SearchInfo
+    {
+        public SearchInfo(FeedInfo p, String template)
+        { m_fi = p; m_template = template; }
+
+        public FeedInfo getFeedInfo()
+        { return m_fi; }
+
+        public String getQueryUriFor(String query)
+        {
+            String qe;
+            try { qe = URLEncoder.encode(query, "utf-8"); }
+            catch (IOException ioe) {
+                qe = query;
+            }
+            
+            return
+                m_template.replace("{searchTerms}", qe);
+        }
+
+        private final String m_template;
+        private final FeedInfo m_fi;
     }
 
     public final static class LinkInfo

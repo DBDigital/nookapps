@@ -6,6 +6,8 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import android.util.Xml;
 import android.util.Log;
+import java.net.URI;
+import org.apache.http.client.utils.URIUtils;
 
 import java.util.Date;
 import java.io.Reader;
@@ -17,6 +19,7 @@ public class AsyncFeedParserTask
     public AsyncFeedParserTask(String u, Trook t, ILinkFixer fixer)
     {
         m_basefile = u;
+        m_resolvepath = u;
         m_trook = t;
         m_fixer = fixer;
     }
@@ -57,6 +60,15 @@ public class AsyncFeedParserTask
         if (!m_pushedTitle) {
             m_trook.addFeedInfo(m_fi);
             m_pushedTitle = true;
+        }
+
+        if (m_opensearchurl != null) {
+            m_trook.asyncLoadOpenSearchFromUri
+                (m_fi, m_basefile, m_opensearchurl);
+            m_opensearchurl = null;
+        }
+        if (s == null) {
+            return;
         }
 
         for (int i=0; i<s.length; i++) {
@@ -263,6 +275,27 @@ public class AsyncFeedParserTask
                     }
                     m_next.setContent("");
                 }
+                else if ("self".equals(li.getAttribute("rel")) &&
+                         (li.getAttribute("href") != null)) {
+                    m_resolvepath = li.getAttribute("href");
+                }
+                else if ("search".equals(li.getAttribute("rel")) &&
+                         "application/opensearchdescription+xml".equals
+                         (li.getAttribute("type")) &&
+                         (li.getAttribute("href")) != null) {
+                    Log.d(TAG, "Found an OpenSearch tag!");
+                    try {
+                        URI base = new URI(m_resolvepath);
+                        URI sref =
+                            URIUtils.resolve(base, li.getAttribute("href"));
+                        m_opensearchurl = sref.toString();
+                        // This is a very goofy way to do this, I'm sorry
+                        publishProgress(null);
+                    }
+                    catch (Throwable ig) {
+                        Log.d(TAG, "Ignoring search error", ig);
+                    }
+                }                
             }
             else {
                 // skip everything else
@@ -384,7 +417,9 @@ public class AsyncFeedParserTask
     private FeedInfo m_fi;
     private boolean m_pushedTitle = false;
     private FeedInfo.EntryInfo m_next = null;
+    private String m_opensearchurl = null;
     private final String m_basefile;
+    private String m_resolvepath;
     private final Trook m_trook;
     private String m_error;
     private final ILinkFixer m_fixer;

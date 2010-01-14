@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent"
+   android:orientation="vertical"
+   android:background="#ffffffff"
+   >
+  <!-- Show edit text right above the touchscreen -->
+  <FrameLayout
+     android:layout_width="600px"
+     android:layout_height="660px"
+     />
+  <TextView
+     android:layout_width="fill_parent"
+     android:layout_height="50.0px"
+     android:singleLine="true"
+     android:textSize="24px"
+     android:text="Search"
+     />
+  <EditText
+     android:layout_width="fill_parent"
+     android:layout_height="50.0px"
+     android:id="@+id/search_et"
+     android:shadowColor="#000000"
+     android:singleLine="true"
+     android:editable="true"
+     android:inputType="textWebEditText"
+     android:imeOptions="actionDone|flagNoEnterAction"
+     />
+  <!-- From here onwards is the real layout -->
+  <FrameLayout
+     android:layout_width="480px"
+     android:layout_height="144px"/>
+</LinearLayout>

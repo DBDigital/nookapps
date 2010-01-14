@@ -75,16 +75,9 @@ public class Trook extends Activity
         m_powerlock = pm.newWakeLock
             (PowerManager.SCREEN_DIM_WAKE_LOCK, TAG+":"+hashCode());
         m_powerlock.setReferenceCounted(false);
-        m_feed_url_dialog = new Dialog(this);
-        m_feed_url_dialog.setContentView(R.layout.feed_url_dialog);
-        m_feed_url_dialog.setTitle("Load New Feed");
-        m_feed_url_dialog.setCancelable(true);
-        m_feed_url_dialog.setCanceledOnTouchOutside(true);
 
-        m_feed_url_et = (EditText)
-            m_feed_url_dialog.findViewById(R.id.feed_url);
-        m_feed_url_et.setOnKeyListener(new FeedUrlListener());
 
+        m_dialog = new OneLineDialog(this, m_webview);
         pushViewFromUri(getFeedRoot());
     }
 
@@ -97,27 +90,31 @@ public class Trook extends Activity
         }
     }
 
-    private void doDialog()
+    private void doFeedDialog()
     {
-        m_feed_url_et.setText("");
-        m_feed_url_et.append("http://");
-        m_feed_url_et.requestFocus();
-        m_feed_url_dialog.show();
-        showSoftKeyboard();
+        m_dialog.showDialog
+            ("Load a feed", "Open feed URL", "http://",
+             new OneLineDialog.SubmitListener() {
+                 public void onSubmit(String url) {
+                     if ((url != null) && (url.length() >0)) {
+                         Trook.this.pushViewFromUri(url);
+                     }
+                 }
+             });
     }
 
-    private final void showSoftKeyboard()
+    private void doSearchDialog(final FeedInfo.SearchInfo si)
     {
-        InputMethodManager imm =
-            (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-        imm.showSoftInput(m_webview,InputMethodManager.SHOW_FORCED);
-    }
-
-    private final void hideSoftKeyboard()
-    {
-        InputMethodManager imm =
-            (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(m_webview.getWindowToken(), 0);
+        m_dialog.showDialog
+            ("Search", "Enter search terms", null,
+             new OneLineDialog.SubmitListener() {
+                 public void onSubmit(String term) {
+                     if ((term != null) && (term.length() >0)) {
+                         Trook.this.pushViewFromUri
+                             (si.getQueryUriFor(term));
+                     }
+                 }
+             });
     }
 
     @Override
@@ -248,6 +245,16 @@ public class Trook extends Activity
     // Only to be called from UI thread
     final void asyncLoadFeedFromReader(String uri, Reader r)
     { m_feedmanager.asyncLoadFeedFromReader(uri, r); }
+
+    // Only to be called from UI thread
+    final void asyncLoadOpenSearchFromUri
+        (FeedInfo fi, String master, String osuri)
+    { m_feedmanager.asyncLoadOpenSearchFromUri(fi, master, osuri); }
+
+    // Only to be called from UI thread
+    final void asyncParseOpenSearch
+        (FeedInfo fi, String master, String osuri, Reader r)
+    { m_feedmanager.asyncParseOpenSearch(fi, master, osuri, r); }
 
     // Only to be called from UI thread
     final void pushViewFromUri(String uri)
@@ -454,7 +461,7 @@ public class Trook extends Activity
     {
         switch (item.getItemId()) {
         case LOAD_ID:
-            doDialog();
+            doFeedDialog();
             return super.onContextItemSelected(item);
         case RESET_ID:
             setFeedRootPrefs(null);
@@ -492,6 +499,9 @@ public class Trook extends Activity
         Button prev = (Button)
             root.findViewById(R.id.prev);
 
+        ImageButton search = (ImageButton)
+            root.findViewById(R.id.search);
+
         String parenturi = m_parents.get(uri);
         String parenttext = null;
         if (parenturi != null) {
@@ -516,7 +526,7 @@ public class Trook extends Activity
             root.findViewById(R.id.feed_entries);
         FeedViewCache.FeedView ret =
             new FeedViewCache.FeedView
-            (uri, root, title, prev, entries);
+            (uri, root, title, prev, search, entries);
         m_feedviewcache.putFeedView(ret);
         return ret;
     }
@@ -586,6 +596,28 @@ public class Trook extends Activity
         m_va.setOutAnimation(this, R.anim.push_down_out);
         m_va.showNext();
         return ret;
+    }
+
+    // Only from UI thread
+    final void setSearch(final FeedInfo.SearchInfo si)
+    {
+        FeedInfo fi = si.getFeedInfo();
+
+        Log.d(TAG, "Got a search info!");
+        // Only add if we have it cached somewhere
+        FeedViewCache.FeedView fv =
+            m_feedviewcache.getFeedView(fi.getUri());
+        if (fv == null) {
+            // ignore
+            return;
+        }
+
+        fv.m_search.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    Trook.this.doSearchDialog(si);
+                }
+            });
+        fv.m_search.setVisibility(View.VISIBLE);
     }
 
     // This should only be called from the UI thread
@@ -745,10 +777,7 @@ public class Trook extends Activity
             m_powerlock.acquire(POWER_DELAY);
         }
         NookUtils.setAppTitle(this, "Trook");
-        if (m_feed_url_dialog.isShowing()) {
-            m_feed_url_dialog.cancel();
-            hideSoftKeyboard();
-        }
+        m_dialog.closeDialog();
     }
 
     @Override
@@ -758,10 +787,7 @@ public class Trook extends Activity
         if (m_powerlock != null) {
             m_powerlock.release();
         }
-        if (m_feed_url_dialog.isShowing()) {
-            m_feed_url_dialog.cancel();
-            hideSoftKeyboard();
-        }
+        m_dialog.closeDialog();
     }
 
     private final void pageUp()
@@ -976,37 +1002,6 @@ public class Trook extends Activity
         private final String m_message;
     }
 
-    private class FeedUrlListener
-        implements View.OnKeyListener
-    {
-	public boolean onKey(View view, int keyCode, KeyEvent keyEvent)
-        {
-            if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-                if (view instanceof EditText) {
-                    EditText et = (EditText) view;
-                    if (keyCode == SOFT_KEYBOARD_CLEAR ) {
-                        et.setText("");
-                    }
-                    else if (keyCode == SOFT_KEYBOARD_SUBMIT) {
-                        String text = et.getText().toString();
-                        if ((text != null) && (text.length() >0)) {
-                            Trook.this.setFeedRootPrefs(text);
-                            Trook.this.pushViewFromUri(text);
-                        }
-                        else {
-                            Trook.this.setFeedRootPrefs(null);
-                        }
-                        Trook.this.m_feed_url_dialog.dismiss();
-                    }
-                    else if (keyCode ==  SOFT_KEYBOARD_CANCEL) {
-                        Trook.this.m_feed_url_dialog.dismiss();
-                    }
-                }
-            }
-            return false;
-	}
-    }
-
     private FeedManager m_feedmanager;
     private FeedViewCache m_feedviewcache;
     private FeedViewCache.FeedView m_curfeedview;
@@ -1017,8 +1012,7 @@ public class Trook extends Activity
     private ViewAnimator m_va;
     private FrameLayout m_framea;
     private FrameLayout m_frameb;
-    private Dialog m_feed_url_dialog;
-    private EditText m_feed_url_et;
+    private OneLineDialog m_dialog;
     private boolean m_usinga = true;
     private Map<String,String> m_parents = new HashMap<String,String>();
     private Map<String,String> m_titles = new HashMap<String,String>();
@@ -1028,8 +1022,11 @@ public class Trook extends Activity
         new View.OnClickListener() {
             @Override
             public void onClick(View v)
-            { Trook.this.doDialog(); }
+            { Trook.this.doFeedDialog(); }
         };
+
+    public interface UriLoadedListener
+    { public void uriLoaded(String uri, Reader r); }
 
     private TextView m_status;
     private Stack<FeedInfo> m_stack = new Stack<FeedInfo>();
@@ -1052,9 +1049,6 @@ public class Trook extends Activity
     private static final int NOOK_PAGE_DOWN_KEY_RIGHT = 97;
     private static final int NOOK_PAGE_UP_KEY_LEFT = 96;
     private static final int NOOK_PAGE_DOWN_KEY_LEFT = 95;
-    private static final int SOFT_KEYBOARD_CLEAR=-13;
-    private static final int SOFT_KEYBOARD_SUBMIT=-8;
-    private static final int SOFT_KEYBOARD_CANCEL=-3;
 
     private static final int WEB_SCROLL_PX = 700;
     private static final int LOAD_ID = 1;
@@ -1063,3 +1057,4 @@ public class Trook extends Activity
     private static final int RESET_ID = 4;
     private static final int SAVE_ID = 5;
 }
+

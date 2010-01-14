@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.util.Log;
 
 public class FeedViewCache
@@ -83,12 +84,13 @@ public class FeedViewCache
     {
         public FeedView
             (String uri, View root, TextView title,
-             Button prev, ViewGroup entries)
+             Button prev, ImageButton search, ViewGroup entries)
         {
             m_uri = uri;
             m_root = root;
             m_title = title;
             m_prev = prev;
+            m_search = search;
             m_entries = entries;
         }
 
@@ -96,6 +98,7 @@ public class FeedViewCache
         public final View m_root;
         public final TextView m_title;
         public final Button m_prev;
+        public final ImageButton m_search;
         public final ViewGroup m_entries;
     }
 }
