@@ -21,7 +21,29 @@ public class FeedManager
     public void asyncLoadFeedFromUri(String uri)
     {
         Log.d(TAG, "spawning a uri task for "+uri);
-        new AsyncLoadUriTask(m_trook, m_cachemgr)
+        new AsyncLoadUriTask
+            (m_trook, m_cachemgr, new Trook.UriLoadedListener() {
+                    public void uriLoaded(String uri, Reader result) {
+                        m_trook.asyncLoadFeedFromReader(uri, result);
+                    }
+                })
+            .execute(uri);
+    }
+
+    // Only call from UI thread. This will create
+    // an async task that will get the OpenSearch file
+    // describing any search templates available
+    // for the given URI
+    public void asyncLoadOpenSearchFromUri
+        (final FeedInfo fi, final String master, final String uri)
+    {
+        Log.d(TAG, "fetching opensearch for "+uri+", for "+master);
+        new AsyncLoadUriTask
+            (m_trook, m_cachemgr, new Trook.UriLoadedListener() {
+                    public void uriLoaded(String ruri, Reader result) {
+                        m_trook.asyncParseOpenSearch(fi, master, ruri, result);
+                    }
+                })
             .execute(uri);
     }
 
@@ -45,6 +67,15 @@ public class FeedManager
             new AsyncFeedParserTask(uri, m_trook)
                 .execute(r);
         }
+    }
+
+    public void asyncParseOpenSearch
+        (FeedInfo fi, String master, String osuri, Reader r)
+    {
+        Log.d(TAG, "spawning an opensearchparse task for "+osuri+", ->"+master);
+        new AsyncOpenSearchParserTask
+            (fi, m_trook, osuri)
+            .execute(r);
     }
 
     public void shutdown()

@@ -22,10 +22,12 @@ import java.net.HttpURLConnection;
 public class AsyncLoadUriTask
     extends AsyncTask<String,String,Reader>
 {
-    public AsyncLoadUriTask(Trook t, CacheManager cmgr)
+    public AsyncLoadUriTask
+        (Trook t, CacheManager cmgr, Trook.UriLoadedListener l)
     {
         m_trook = t;
         m_cachemgr = cmgr;
+        m_l = l;
     }
 
     @Override
@@ -52,7 +54,7 @@ public class AsyncLoadUriTask
         // See if we have it in our cache already
         Reader r = maybeCached(m_uri);
         if (r != null) {
-            Log.d(TAG, "Returning cached content!");
+            Log.d(TAG, "Returning cached content for "+m_uri);
             return r;
         }
 
@@ -191,7 +193,7 @@ public class AsyncLoadUriTask
     protected void onPostExecute(Reader result)
     {
         if (result != null) {
-            m_trook.asyncLoadFeedFromReader(m_uri, result);
+            m_l.uriLoaded(m_uri, result);
         }
         else {
             // Remove any cached views
@@ -224,6 +226,7 @@ public class AsyncLoadUriTask
     private String m_error = null;
     private final Trook m_trook;
     private final CacheManager m_cachemgr;
+    private final Trook.UriLoadedListener m_l;
 
     private final static String TAG ="async-load-uri";
 }
