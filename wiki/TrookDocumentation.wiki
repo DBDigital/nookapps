@@ -28,7 +28,7 @@ To stop the application, bring up the menu using the long click on the
 gear icon, and the bottom has a "Stop application" command.
 
 
-Alternately, you could creat a static feed of feeds and
+Alternately, you could create a static feed of feeds and
 copy it over USB, so you can refresh individual feeds within it on demand.
 
 === Copy a static file over USB ===
