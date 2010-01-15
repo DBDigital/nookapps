@@ -67,6 +67,14 @@ public class AsyncFeedParserTask
                 (m_fi, m_basefile, m_opensearchurl);
             m_opensearchurl = null;
         }
+        if (m_stanzasearchurl != null) {
+            FeedInfo.SearchInfo si =
+                new FeedInfo.SearchInfo
+                (m_fi, m_stanzasearchurl);
+            m_fi.setSearch(si);
+            m_trook.setSearch(si);
+            m_stanzasearchurl = null;
+        }
         if (s == null) {
             return;
         }
@@ -279,10 +287,8 @@ public class AsyncFeedParserTask
                          (li.getAttribute("href") != null)) {
                     m_resolvepath = li.getAttribute("href");
                 }
-                else if ("search".equals(li.getAttribute("rel")) &&
-                         "application/opensearchdescription+xml".equals
-                         (li.getAttribute("type")) &&
-                         (li.getAttribute("href")) != null) {
+                // Feedbooks uses opensearch
+                else if (isOpenSearchLink(li)) {
                     Log.d(TAG, "Found an OpenSearch tag!");
                     try {
                         URI base = new URI(m_resolvepath);
@@ -295,7 +301,13 @@ public class AsyncFeedParserTask
                     catch (Throwable ig) {
                         Log.d(TAG, "Ignoring search error", ig);
                     }
-                }                
+                }
+                // lexcycle/stanza embeds it directly, simpler...
+                else if (isStanzaSearchLink(li)) {
+                    Log.d(TAG, "Found a stanza search link");
+                    m_stanzasearchurl = li.getAttribute("href");
+                    publishProgress(null);
+                }
             }
             else {
                 // skip everything else
@@ -311,6 +323,26 @@ public class AsyncFeedParserTask
             publishProgress(m_next);
             m_next = null; // just to be safe.
         }
+    }
+
+    private final static boolean isOpenSearchLink(FeedInfo.LinkInfo li)
+    {
+        return
+            "search"
+            .equals(li.getAttribute("rel")) &&
+            "application/opensearchdescription+xml"
+            .equals(li.getAttribute("type")) &&
+            (li.getAttribute("href") != null);
+    }
+
+    private final static boolean isStanzaSearchLink(FeedInfo.LinkInfo li)
+    {
+        return
+            "search"
+            .equals(li.getAttribute("rel")) &&
+            "application/atom+xml"
+            .equals(li.getAttribute("type")) &&
+            (li.getAttribute("href") != null);
     }
 
     private final void parseAuthor(XmlPullParser p)
@@ -418,6 +450,7 @@ public class AsyncFeedParserTask
     private boolean m_pushedTitle = false;
     private FeedInfo.EntryInfo m_next = null;
     private String m_opensearchurl = null;
+    private String m_stanzasearchurl = null;
     private final String m_basefile;
     private String m_resolvepath;
     private final Trook m_trook;
