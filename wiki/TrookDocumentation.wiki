@@ -70,4 +70,4 @@ this:
   </entry>
 }}}
 
-As Trook understands Stanza catalogs, it should (thanks [http://code.google.com/u/sethcohn/ sethcon] -- see comments for the report) be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network.
+As Trook understands Stanza catalogs, it should be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network (thanks for confirming this [http://code.google.com/u/sethcohn/ sethcon] -- please see his comments below.) 
