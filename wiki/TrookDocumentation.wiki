@@ -23,12 +23,13 @@ Please note that this will actually download the file locally, and it will
 become the static, startup feed. If you want to refresh it, you'll have to
 go through the same process again.
 
-Alternatively, you could creating a static feed of feeds and
-copy it over USB, so you can refresh the feed on demand.
-
 The new feed root will be used when the application is next restarted.
 To stop the application, bring up the menu using the long click on the
 gear icon, and the bottom has a "Stop application" command.
+
+
+Alternatively, you could creating a static feed of feeds and
+copy it over USB, so you can refresh individual feeds on demand.
 
 === Copy a static file over USB ===
 
@@ -69,7 +70,4 @@ this:
   </entry>
 }}}
 
-As Trook understands Stanza catalogs, it should (could someone verify
-this?) be able to access your Calibre-managed books from the Nook,
-once you enable Calibre's server, and you have a way to access that server over
-the internet.
+As Trook understands Stanza catalogs, it should (thanks [http://code.google.com/u/sethcohn/ sethcon] -- see comments for the report) be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network.
