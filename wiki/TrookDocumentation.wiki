@@ -44,8 +44,8 @@ Mount the Nook over USB, and create a folder called <tt>/my feeds</tt>
 if it doesn't already exist. Then, copy your xml file as
 <tt>/my feeds/root.xml</tt>, and make sure that the file is world readable.
 
-Please note that <tt>/my feeds</tt> folder sits alongside your <tt>/my documents</tt>
-and <tt>/my music</tt> etc folders. These folders should be in the root directory of
+Please note that the <tt>/my feeds</tt> folder sits alongside your <tt>/my documents</tt>
+and <tt>/my music</tt> and other such folders. These folders should be in the root directory of
 your USB mounted Nook. (If you are accessing your Nook through an <tt>adb shell</tt>
 however, the root USB mountpoint is at <tt>/system/media/sdcard</tt>.)
 
@@ -59,7 +59,7 @@ bring up the default feeds again.
 Trook intends to implement some random subset of [http://code.google.com/p/openpub/wiki/OPDS OPDS] but your best bet is to look at [http://code.google.com/p/nookapps/source/browse/trunk/trook/assets/default_root_feed.xml the default feed file] and the
 [http://www.lexcycle.com/developer Stanza catalog format documentation] from Lexcycle.
 
-At it's core, it's just a set of feeds, that can point to other feeds (thus giving hierarchies) epub files, audio files or (and this is special to Trook) android apk files.
+At its core, it's just a set of feeds, that can point to other feeds (thus giving hierarchies) or a list of epub files, audio files or (and this is special to Trook) android apk files.
 
 By the way, should you ever feel the desire to point to the default feed from your
 own feed, there's a magic URI `asset:default_root_feed.xml`
@@ -75,4 +75,4 @@ this:
   </entry>
 }}}
 
-As Trook understands Stanza catalogs, it should be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network (thanks for confirming this [http://code.google.com/u/sethcohn/ sethcon] -- please see his comments below.) 
+Trook understands Stanza catalogs, so it will be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network (thanks for confirming this [http://code.google.com/u/sethcohn/ sethcon] -- please see his comments below.) 
