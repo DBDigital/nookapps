@@ -8,8 +8,25 @@
     <link type="text/html" href="http://nookapps.googlecode.com/svn/trunk/feed/howto.html"/>
     <content type="text">How to enable your nook to install market applications</content>
   </entry>
+
   <entry>
     <title>Nook Browser</title>
+    <link type="application/vnd.android.package-archive"
+          href="http://nookapps.googlecode.com/files/NookBrowser.apk"/>
+    <id>http://nookapps.googlecode.com/files/NookBrowser.apk</id>
+    <content type="text">Version 0.0.2 of Hari Swaminathan's nook-tweaked browser (this is mirrored from Nookdevs.)</content>
+  </entry>
+
+  <entry>
+    <title>Trook</title>
+    <link type="application/vnd.android.package-archive"
+          href="http://nookapps.googlecode.com/files/Trook-debug.apk"/>
+    <id>http://nookapps.googlecode.com/files/Trook-debug.apk</id>
+    <content type="text">The latest version of Trook</content>
+  </entry>
+
+  <entry>
+    <title>Nook Launcher</title>
     <link type="application/vnd.android.package-archive"
           href="http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk"/>
     <id>http://nooklauncher.googlecode.com/files/NookLauncher-debug.apk</id>
