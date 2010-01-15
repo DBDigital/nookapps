@@ -40,9 +40,14 @@ Please validate this carefully, otherwise the application will fail on
 startup. You still recover the app, but you'll need to reconnect your
 nook over usb to fix it, which can be needlessly painful.
 
-Connect your Nook over usb, and create a folder called <tt>/my feeds</tt>
+Mount the Nook over USB, and create a folder called <tt>/my feeds</tt>
 if it doesn't already exist. Then, copy your xml file as
-<tt>/my feeds/root.xml</tt>
+<tt>/my feeds/root.xml</tt>, and make sure that the file is world readable.
+
+Please note that <tt>/my feeds</tt> folder sits alongside your <tt>/my documents</tt>
+and <tt>/my music</tt> etc folders. These folders should be in the root directory of
+your USB mounted Nook. (If you are accessing your Nook through an <tt>adb shell</tt>
+however, the root USB mountpoint is at <tt>/system/media/sdcard</tt>.)
 
 === Reset the default feed ===
 If anything should go wrong, if you can see the gear icon at least, bring
