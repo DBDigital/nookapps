@@ -1,8 +1,12 @@
 package com.kbs.trook;
 
 import java.io.Reader;
+import java.io.File;
 
 import android.util.Log;
+import android.net.Uri;
+
+import com.kbs.trook.adapter.AsyncDirectoryAdapter;
 
 import com.kbs.backport.AsyncTask;
 
@@ -21,6 +25,22 @@ public class FeedManager
     public void asyncLoadFeedFromUri(String uri)
     {
         Log.d(TAG, "spawning a uri task for "+uri);
+
+        // We first try to figure out the appropriate
+        // adapter for this uri
+        Uri auri = Uri.parse(uri);
+        if ("file".equals(auri.getScheme())) {
+            // If it's a directory, use the DirectoryAdapter
+            File f = new File(auri.getPath());
+            if (f.isDirectory()) {
+                asyncLoadDirectoryAdapter(uri);
+                return;
+            }
+        }
+
+        // Default: try to pick up a Reader from it, for
+        // further parsing.
+
         new AsyncLoadUriTask
             (m_trook, m_cachemgr, new Trook.UriLoadedListener() {
                     public void uriLoaded(String uri, Reader result) {
@@ -28,6 +48,13 @@ public class FeedManager
                     }
                 })
             .execute(uri);
+    }
+
+    // Only call from UI thread.
+    public void asyncLoadDirectoryAdapter(String uri)
+    {
+        Log.d(TAG, "spawn a directory read task for "+uri);
+        new AsyncDirectoryAdapter(m_trook).execute(uri);
     }
 
     // Only call from UI thread. This will create

@@ -78,7 +78,7 @@ public class FeedViewCache
 
     private final ArrayList<FeedView> m_views =
         new ArrayList<FeedView>();
-    private final static int MAX = 8;
+    private final static int MAX = 12;
 
     public final static class FeedView
     {

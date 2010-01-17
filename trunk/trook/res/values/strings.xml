@@ -8,5 +8,7 @@
     <string name="mp3_download_text">Download</string>
     <string name="epub_download_text">Download</string>
     <string name="apk_download_text">Install</string>
+    <string name="directory_text">Open Folder</string>
+    <string name="readbook_text">Read Book</string>
     <string name="next_title">More...</string>
 </resources>

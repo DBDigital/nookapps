@@ -146,7 +146,7 @@ public class Trook extends Activity
     }
 
     // This should only be called from the UI thread
-    final void displayError(String msg)
+    public final void displayError(String msg)
     {
         statusUpdate(null);
         Toast.makeText
@@ -278,7 +278,7 @@ public class Trook extends Activity
         asyncLoadFeedFromUri(uri);
     }
     // Only from UI thread
-    final void statusUpdate(String s)
+    public final void statusUpdate(String s)
     {
         if (s == null) {
             m_status.setVisibility(View.GONE);
@@ -385,7 +385,7 @@ public class Trook extends Activity
     { m_feedviewcache.removeFeedView(uri); }
 
     // This should only be called from the UI thread
-    final void addFeedInfo(FeedInfo fi)
+    public final void addFeedInfo(FeedInfo fi)
     {
         // We only bother updating things that are
         // in our cache.
@@ -394,6 +394,7 @@ public class Trook extends Activity
         FeedViewCache.FeedView cached =
             m_feedviewcache.getFeedView(fi.getUri());
         if (cached == null) {
+            Log.d(TAG, fi.getUri()+" not cached, ignoring...");
             return;
         }
         cached.m_title.setText(fi.getTitle());
@@ -621,7 +622,7 @@ public class Trook extends Activity
     }
 
     // This should only be called from the UI thread
-    final void addFeedEntry(FeedInfo.EntryInfo ei)
+    public final void addFeedEntry(FeedInfo.EntryInfo ei)
     {
         FeedInfo fi = ei.getFeedInfo();
         // Only add if we have it cached somewhere
@@ -658,6 +659,20 @@ public class Trook extends Activity
 
         */
 
+        // At least deal with file icons
+        String iuri = ei.getIconUri();
+        boolean iuri_set = false;
+        if (iuri != null) {
+            // Log.d(TAG, "Found icon uri = "+iuri);
+            Uri uri = Uri.parse(iuri);
+            if ("file".equals(uri.getScheme())) {
+                // Surprisingly, this takes a path rather
+                // than a URI
+                ib.setImageURI(Uri.parse(uri.getPath()));
+                iuri_set = true;
+            }
+        }
+
         boolean did_something = false;
         String baseuri = ei.getFeedInfo().getUri();
 
@@ -671,12 +686,33 @@ public class Trook extends Activity
             String type = li.getAttribute("type");
             if ("application/epub+zip".equals(type)) {
                 doit.setText(R.string.epub_download_text);
+                
                 doit.setOnClickListener
-                    (new DownloadClicker
-                     (baseuri, href,
-                      "/system/media/sdcard/my documents/"+
-                      sanitizeUniqueName(baseuri, href)+".epub", type));
+                    (makeEpubDownloadClicker
+                     (baseuri, href, type, ei));
                 ib.setImageResource(R.drawable.epub);
+                did_something = true;
+                break;
+            }
+            else if ("trook/directory".equals(type)) {
+                doit.setText(R.string.directory_text);
+                doit.setOnClickListener
+                    (new DirectoryClicker(href));
+                if (!iuri_set) {
+                    ib.setImageResource(R.drawable.directory);
+                }
+                did_something = true;
+                break;
+            }
+            else if ("trook/epub".equals(type) ||
+                     "trook/pdf".equals(type) ||
+                     "trook/pdb".equals(type)) {
+                doit.setText(R.string.readbook_text);
+                doit.setOnClickListener
+                    (new ReadBookClicker(href, type));
+                if (!iuri_set) {
+                    ib.setImageResource(R.drawable.epub);
+                }
                 did_something = true;
                 break;
             }
@@ -738,17 +774,80 @@ public class Trook extends Activity
             el.findViewById(R.id.entry);
         String content = "";
         if (ei.getTitle() != null) {
-            content += "<h1>"+ei.getTitle()+"</h1>";
+            content += "<h3>"+ei.getTitle()+"</h3>";
         }
+        if (ei.getAuthor() != null) {
+            content+="<h5>"+ei.getAuthor()+"</h5>";
+        }
+        boolean made_summary = false;
         if (ei.getContent() != null) {
             content += ei.getContent();
+            made_summary = true;
         }
         else if (ei.getSummary() != null) {
             content += ei.getSummary();
+            made_summary = true;
+        }
+        if (!made_summary) {
+            etv.setMaxWidth(150);
         }
         etv.setText(Html.fromHtml(content));
         fv.m_entries.addView(el);
         // Log.d(TAG, "Added view with "+ei.getTitle());
+    }
+
+    private final DownloadClicker makeEpubDownloadClicker
+        (String baseuri, String href, String type, FeedInfo.EntryInfo ei)
+    {
+        // Attempt to download a thumbnail icon if something's here
+        String[] hrefs;
+        String[] mimes;
+        String[] targets;
+
+        if (ei.getIconUri() == null) {
+            hrefs = new String[1];
+            mimes = new String[1];
+            targets = new String[1];
+        }
+        else {
+            hrefs = new String[2];
+            mimes = new String[2];
+            targets = new String[2];
+
+            hrefs[1] = ei.getIconUri();
+            mimes[1] = "image";
+            targets[1] = makeEpubPath(baseuri, href, ei)+".jpg";
+        }
+
+        hrefs[0] = href;
+        mimes[0] = "application/epub+zip";
+        targets[0] = makeEpubPath(baseuri, href, ei)+".epub";
+        return new DownloadClicker
+            (baseuri, hrefs, targets, mimes);
+    }
+
+    private final static String makeEpubPath
+        (String baseuri, String href, FeedInfo.EntryInfo ei)
+    {
+        // For a slightly less insane way to organize book paths for
+        // downloaded content, I attempt to organize things in two
+        // levels -- an author, and the title, and create extra
+        // numbers at the end if there's a file like this already.
+
+        String author = ei.getAuthor();
+        if (author == null) {
+            author = "Unknown";
+        }
+
+        String title = ei.getTitle();
+        if (title == null) {
+            // to have some vague chance of figuring out
+            // what book this really is, I fall back to
+            // the base URI.
+            title = sanitizeUniqueName(baseuri, href);
+        }
+
+        return MYDOC_ROOT_PATH+"/"+author+"/"+title;
     }
 
     private final static String sanitizeUniqueName
@@ -855,45 +954,107 @@ public class Trook extends Activity
         private final String m_base;
     }
 
+    private final class DirectoryClicker
+        implements View.OnClickListener
+    {
+        private DirectoryClicker(String diruri)
+        { m_diruri = diruri; }
+
+        public void onClick(View v)
+        { Trook.this.pushViewFromUri(m_diruri); }
+
+        private final String m_diruri;
+    }
+
+    private final class ReadBookClicker
+        implements View.OnClickListener
+    {
+        private ReadBookClicker(String uri, String type)
+        {
+            m_uri = uri;
+
+            // translations for intent
+            if ("trook/epub".equals(type)) {
+                m_type = "application/epub";
+            }
+            else if ("trook/pdf".equals(type)) {
+                m_type = "application/pdf";
+            }
+            else if ("trook/pdb".equals(type)) {
+                m_type = "application/pdb";
+            }
+            else {
+                throw new IllegalArgumentException
+                    ("Unexpected mime type -- "+type);
+            }
+        }
+
+        public void onClick(View v)
+        {
+            Intent ri = new Intent("com.bravo.intent.action.VIEW");
+            ri.setDataAndType(Uri.parse(m_uri), m_type);
+            try { Trook.this.startActivity(ri); }
+            catch (Throwable th) {
+                Log.d(TAG, "Unable to read book", th);
+                Trook.this.displayError(m_uri+"\n: failed to read\n"+
+                                        th.toString());
+            }
+        }
+
+        private final String m_uri;
+        private final String m_type;
+    }
+
     private final class DownloadClicker
         implements View.OnClickListener
     {
         private DownloadClicker
+            (String base, String[] hrefs, String[] targets, String mimes[])
+        {
+            m_base = base;
+            m_hrefs = hrefs;
+            m_targets = targets;
+            m_mimes = mimes;
+        }
+
+        private DownloadClicker
             (String base, String href, String target, String mime)
         {
             m_base = base;
-            m_href = href;
-            m_target = target;
-            m_mime = mime;
+            m_hrefs = new String[1]; m_hrefs[0] = href;
+            m_targets = new String[1]; m_targets[0] = target;
+            m_mimes = new String[1]; m_mimes[0] = mime;
         }
 
         public void onClick(View v)
         {
             try {
                 URI base = new URI(m_base);
-                URI ref = URIUtils.resolve(base, m_href);
-                // Log.d(TAG, "Found base URL = "+ref);
+                for (int i=0; i<m_hrefs.length; i++) {
+                    URI ref = URIUtils.resolve(base, m_hrefs[i]);
+                    // Log.d(TAG, "Found base URL = "+ref);
 
-                Intent dsi = new Intent();
-                dsi.setDataAndType
-                    (Uri.parse(ref.toString()), m_mime);
-                dsi.putExtra(DownloadService.TARGET, m_target);
-                dsi.setComponent
-                    (new ComponentName
-                     ("com.kbs.trook", "com.kbs.trook.DownloadService"));
-                maybeCreateFeedDirectory();
-                startService(dsi);
+                    Intent dsi = new Intent();
+                    dsi.setDataAndType
+                        (Uri.parse(ref.toString()), m_mimes[i]);
+                    dsi.putExtra(DownloadService.TARGET, m_targets[i]);
+                    dsi.setComponent
+                        (new ComponentName
+                         ("com.kbs.trook", "com.kbs.trook.DownloadService"));
+                    maybeCreateFeedDirectory();
+                    startService(dsi);
+                }
                 displayShortMessage("Starting download in the background");
             }
             catch (Throwable th) {
                 Log.d(TAG, "download fails", th);
-                Trook.this.displayError("Failed to load "+m_href+"\n"+th);
+                Trook.this.displayError("Failed to load "+m_hrefs[0]+"\n"+th);
             }
         }
-        private final String m_href;
+        private final String[] m_hrefs;
         private final String m_base;
-        private final String m_target;
-        private final String m_mime;
+        private final String[] m_targets;
+        private final String[] m_mimes;
     }
 
     private final boolean isIntentAvailable(Intent msg)
@@ -1043,6 +1204,8 @@ public class Trook extends Activity
         "/system/media/sdcard/my feeds/root.xml";
     private final static String LOCAL_ROOT_XML_DIR =
         "/system/media/sdcard/my feeds";
+    private final static String MYDOC_ROOT_PATH =
+        "/system/media/sdcard/my documents/";
 
     // magic {thanks hari!}
     private static final int NOOK_PAGE_UP_KEY_RIGHT = 98;

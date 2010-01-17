@@ -88,7 +88,8 @@ public class DownloadService
 
             URL url = new URL(source.toString());
             if (target.startsWith("/")) {
-                out = new FileOutputStream(target);
+                File tg = new File(target);
+                out = new FileOutputStream(prepareTarget(tg));
             }
             else {
                 // do a check here for silly errors with a
@@ -182,6 +183,25 @@ public class DownloadService
             packageManager.queryIntentActivities
             (msg, PackageManager.MATCH_DEFAULT_ONLY);
         return list.size() > 0;
+    }
+
+    // Find a File (by prepending numbers as needed)
+    // that doesn't exist. Also make any parent folders
+    // as needed
+    private final File prepareTarget(File start)
+    {
+        int idx = 1;
+        File parent = start.getParentFile();
+        if (parent == null) { 
+            return start; // oh well. Hope for the best.
+        }
+        parent.mkdirs();
+        File cur = new File(parent, start.getName());
+        while (cur.exists() && (idx < 50)) {
+            cur = new File(parent, idx+"_"+start.getName());
+            idx++;
+        }
+        return cur;            
     }
 
     private final void bail(final String msg)
