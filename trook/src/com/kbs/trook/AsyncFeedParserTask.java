@@ -296,7 +296,7 @@ public class AsyncFeedParserTask
                             URIUtils.resolve(base, li.getAttribute("href"));
                         m_opensearchurl = sref.toString();
                         // This is a very goofy way to do this, I'm sorry
-                        publishProgress(null);
+                        publishProgress((FeedInfo.EntryInfo[])null);
                     }
                     catch (Throwable ig) {
                         Log.d(TAG, "Ignoring search error", ig);
@@ -306,7 +306,7 @@ public class AsyncFeedParserTask
                 else if (isStanzaSearchLink(li)) {
                     Log.d(TAG, "Found a stanza search link");
                     m_stanzasearchurl = li.getAttribute("href");
-                    publishProgress(null);
+                    publishProgress((FeedInfo.EntryInfo[])null);
                 }
             }
             else {
@@ -332,6 +332,18 @@ public class AsyncFeedParserTask
             .equals(li.getAttribute("rel")) &&
             "application/opensearchdescription+xml"
             .equals(li.getAttribute("type")) &&
+            (li.getAttribute("href") != null);
+    }
+
+    private final static boolean isThumbnailLink(FeedInfo.LinkInfo li)
+    {
+        return 
+            ("http://opds-spec.org/thumbnail".equals
+             (li.getAttribute("rel")) ||
+             "http://opds-spec.org/opds-cover-image-thumbnail".equals
+             (li.getAttribute("rel")) ||
+             "x-stanza-cover-image-thumbnail".equals
+             (li.getAttribute("rel"))) &&
             (li.getAttribute("href") != null);
     }
 
@@ -376,13 +388,20 @@ public class AsyncFeedParserTask
                     ei.setId(P.collectText(p));
                 }
                 else if ("link".equals(curtag)) {
-                    ei.addLink(parseLink(p));
+                    FeedInfo.LinkInfo li = parseLink(p);
+                    ei.addLink(li);
+                    if (isThumbnailLink(li)) {
+                        ei.setIconUri(li.getAttribute("href"));
+                    }
                 }
                 else if ("content".equals(curtag)) {
                     ei.setContent(P.collectText(p));
                 }
                 else if (curtag.equals("summary")) {
                     ei.setSummary(P.collectText(p));
+                }
+                else if ("author".equals(curtag)) {
+                    parseEntryAuthor(ei, p);
                 }
                 else {
                     P.skipThisBlock(p);
@@ -409,6 +428,37 @@ public class AsyncFeedParserTask
         }
         // hm, reached end without parsing -- just return
         Log.d(TAG, "Bopped off the end of an entry");
+    }
+    
+    private final void parseEntryAuthor(FeedInfo.EntryInfo ei, XmlPullParser p)
+        throws IOException, XmlPullParserException
+    {
+        P.assertStart(p, "author");
+        int type = p.next();
+        while (type != XmlPullParser.END_DOCUMENT) {
+            if (type == XmlPullParser.START_TAG) {
+                String curtag = p.getName();
+                if ("name".equals(curtag)) {
+                    ei.setAuthor(P.collectText(p).trim());
+                }
+                else {
+                    P.skipThisBlock(p);
+                }
+                type = p.getEventType();
+            }
+            else if (type == XmlPullParser.END_TAG) {
+                if (p.getName().equals("author")) {
+                    p.next();
+                    return;
+                }
+                else {
+                    type = p.next();
+                }
+            }
+            else {
+                type = p.next();
+            }
+        }                
     }
 
     private final FeedInfo.LinkInfo parseLink(XmlPullParser p)

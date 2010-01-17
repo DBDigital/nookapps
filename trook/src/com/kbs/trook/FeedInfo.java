@@ -65,6 +65,10 @@ public class FeedInfo
     {
         public EntryInfo(FeedInfo fi)
         { m_fi = fi; }
+        public String getAuthor()
+        { return m_author; }
+        public void setAuthor(String s)
+        { m_author = s; }
         public FeedInfo getFeedInfo()
         { return m_fi; }
         public String getTitle()
@@ -102,6 +106,7 @@ public class FeedInfo
         private String m_content;
         private String m_summary;
         private String m_iconuri;
+        private String m_author = null;
         private List<LinkInfo> m_links =
             new LinkedList<LinkInfo>();
         private Date m_updated;
