@@ -5,48 +5,43 @@
 
 ==How do I load a feed of my choice?==
 
-Tap on the little gear looking icon on the title bar, and you can enter
-the path to a feed of your own choice. It's painful to enter text, I know.
-I'm sorry about that.
+Tap on the little gear looking icon on the title bar, and enter the URL to the feed you want to load.
 
-==How do I change the startup feed?==
+==How do I bookmark this feed?==
 
-There are two ways to do this.
+Long-click on the gear icon, and you'll find a menu that lets you bookmark the current URL. The bookmark will go into your "my feeds" area, which is accessible from the Trook root screen. It's simply a text file with the suffix <pre>.bookmark</pre> so feel free to create more bookmarks and upload them through USB.
 
-===Save a feed locally as your startup feed===
+==Can I browse my locally stored books?==
 
-Tap on the gear icon to enter a feed from the network. Once it loads
-successfully, long click on the gear icon (2-3 seconds.) This will open
-up a menu, and you can tap on the "Save this feed as the default" choice.
+The "my books" entry from the Trook root menu lets you browse your documents, and preserves any folder structure you have there.
 
-Please note that this will actually download the file locally, and it will
-become the static, startup feed. If you want to refresh it, you'll have to
-go through the same process again.
+==How can I add or change the cover art for my book?==
 
-The new feed root will be used when the application is next restarted.
-To stop the application, bring up the menu using the long click on the
-gear icon, and the bottom has a "Stop application" command.
+Just create an image with the same name as the book (but change
+the suffix as appropriate.) For example, if you have an epub book
+in <pre>my documents/Adventure/Professor Challenger.epub</pre>
+create an image called <pre>my documents/Adventure/Professor Challenger.jpg</pre> You can create jpg, png or gif files.
 
+==Can I search a catalog?==
 
-Alternately, you could create a static feed of feeds and
-copy it over USB, so you can refresh individual feeds within it on demand.
+If a catalog provides a search option, you'll see a magnifying glass icon
+appear next to the settings. Click on it to search the current catalog.
 
-=== Copy a static file over USB ===
+==Can I access my Calibre catalog?==
 
-It's best to create an Atom style feed (please use
-[http://code.google.com/p/nookapps/source/browse/trunk/trook/assets/default_root_feed.xml  the default feed file] as an example.)
+Yes -- start up your calibre server, and load the feed <pre>http://server-ip:8080/stanza</pre> You can also bookmark it to "my feeds" so it's conveniently accessible from then on. (Thanks to [http://code.google.com/u/sethcohn/ sethcon] for the tip. Also, please see [http://code.google.com/u/dpierron/ dpierron]'s pointer to his [http://davidsoft.free.fr/calibre2opds/calibre2opds/Welcome.html calibre2opds] system in the comments below.)
+ 
+==How do I change the startup menu?==
 
-Please validate this carefully, otherwise the application will fail on
-startup. You still recover the app, but you'll need to reconnect your
-nook over usb to fix it, which can be needlessly painful.
+You can override the default menu -- it's just an atom feed -- by creating
+an xml file called <pre>my feeds/root.xml</pre> It's best to start with
+[http://code.google.com/p/nookapps/source/browse/trunk/trook/assets/default_root_feed.xml  the default feed file] and modify it as appropriate.
 
 Mount the Nook over USB, and create a folder called <tt>/my feeds</tt>
 if it doesn't already exist. Then, copy your xml file as
 <tt>/my feeds/root.xml</tt>, and make sure that the file is world readable.
 
-Please note that the <tt>/my feeds</tt> folder sits alongside your <tt>/my documents</tt>
-and <tt>/my music</tt> and other such folders. These folders should be in the root directory of
-your USB mounted Nook. (If you are accessing your Nook through an <tt>adb shell</tt>
+(If you are accessing your Nook through an <tt>adb shell</tt>
 however, the root USB mountpoint is at <tt>/system/media/sdcard</tt>.)
 
 === Reset the default feed ===
@@ -74,5 +69,3 @@ this:
     <content type="text">Trook's default catalog</content>
   </entry>
 }}}
-
-Trook understands Stanza catalogs, so it will be able to access your [http://calibre-ebook.com/ Calibre] managed book collection once you run the Calibre server, and have a way to connect to it over the network (thanks for confirming this [http://code.google.com/u/sethcohn/ sethcohn] -- please see his comments below.) 
