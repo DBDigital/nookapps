@@ -7,6 +7,8 @@ import com.kbs.trook.Trook;
 import java.util.Date;
 import java.io.IOException;
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -139,7 +141,8 @@ public class AsyncDirectoryAdapter
             "epub".equalsIgnoreCase(suffix) ||
             "pdf".equalsIgnoreCase(suffix) ||
             "pdb".equalsIgnoreCase(suffix) ||
-            "xml".equalsIgnoreCase(suffix);
+            "xml".equalsIgnoreCase(suffix) ||
+            "bookmark".equalsIgnoreCase(suffix);
     }
 
     private final void processCandidate(File f)
@@ -161,6 +164,9 @@ public class AsyncDirectoryAdapter
         String prefix = name.substring(0, idx);
         if (suffix.equalsIgnoreCase("xml")) {
             processXml(f, prefix, suffix);
+        }
+        else if (suffix.equalsIgnoreCase("bookmark")) {
+            processBookmark(f, prefix);
         }
         else {
             processReader(f, prefix, suffix);
@@ -203,6 +209,51 @@ public class AsyncDirectoryAdapter
         FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
         li.setAttribute("href", uriref);
         li.setAttribute("type", "application/atom+xml"); // optimistic
+        ei.addLink(li);
+        // This is the Calibre convention [seems to be what the
+        // nook uses as well]
+        File p = f.getParentFile();
+        if (p != null) {
+            // Try a few choices
+            File im;
+            for (int i=0; i<IMG_SUFFIXES.length; i++) {
+                im = new File(p, name+IMG_SUFFIXES[i]);
+                if (im.canRead()) {
+                    ei.setIconUri(Uri.fromFile(im).toString());
+                    break;
+                }
+            }
+        }
+
+        m_fi.addEntry(ei);
+        publishProgress(ei);
+    }
+
+    private final void processBookmark(File f, String name)
+    {
+        FeedInfo.EntryInfo ei = new FeedInfo.EntryInfo(m_fi);
+        ei.setTitle(name);
+        BufferedReader r = null;
+        String uri;
+        try {
+            r = new BufferedReader(new FileReader(f));
+            uri = r.readLine();
+        }
+        catch (Throwable th) {
+            // Ignore errors silently
+            Log.d(TAG, "Failed to read "+f, th);
+            return;
+        }
+        finally {
+            if (r != null) {
+                try {r.close();}
+                catch (Throwable ign) {}
+            }
+        }
+
+        FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
+        li.setAttribute("href", uri);
+        li.setAttribute("type", "application/atom+xml");
         ei.addLink(li);
         // This is the Calibre convention [seems to be what the
         // nook uses as well]

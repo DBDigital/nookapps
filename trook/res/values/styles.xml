@@ -31,4 +31,8 @@
     <item name="android:gravity">center_vertical|center_horizontal</item>
     <item name="android:background">@drawable/blue_button_inset</item>
   </style>
+  <style name="ImageActionButton">
+    <item name="android:scaleType">centerInside</item>
+    <item name="android:background">@drawable/image_action_button</item>
+  </style>
 </resources>
