@@ -9,7 +9,8 @@ Tap on the little gear looking icon on the title bar, and enter the URL to the f
 
 ==How do I bookmark this feed?==
 
-Long-click on the gear icon, and you'll find a menu that lets you bookmark the current URL. The bookmark will go into your "my feeds" area, which is accessible from the Trook root screen. It's simply a text file with the suffix <pre>.bookmark</pre> so feel free to create more bookmarks and upload them through USB.
+Long-click on the gear icon, and you'll find a menu that lets you bookmark the current URL. The bookmark will go into your "my feeds" area, which is accessible from the Trook root screen.
+By the way, a bookmark is just a text file with the suffix <pre>.bookmark</pre> so feel free to create more bookmarks and upload them through USB.
 
 ==Can I browse my locally stored books?==
 
