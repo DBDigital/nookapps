@@ -22,7 +22,7 @@
     <link type="application/vnd.android.package-archive"
           href="http://nookapps.googlecode.com/files/Trook-debug.apk"/>
     <id>http://nookapps.googlecode.com/files/Trook-debug.apk</id>
-    <content type="text">The latest version of Trook</content>
+    <content type="text">The latest version (rev 28) of Trook. This version can browse your local book folders, save feeds as bookmarks, and search catalogs.</content>
   </entry>
 
   <entry>

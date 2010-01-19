@@ -23,6 +23,7 @@ import android.app.Dialog;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.util.Log;
 import android.text.Html;
 import android.net.Uri;
@@ -37,6 +38,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.Reader;
+import java.io.Writer;
+import java.io.FileWriter;
 import java.io.File;
 
 import java.net.URI;
@@ -84,7 +87,7 @@ public class Trook extends Activity
     private void maybeCreateFeedDirectory()
         throws IOException
     {
-        File f = new File(LOCAL_ROOT_XML_DIR);
+        File f = new File(FEED_DIR);
         if (!f.exists()) {
             f.mkdirs();
         }
@@ -400,7 +403,7 @@ public class Trook extends Activity
         cached.m_title.setText(fi.getTitle());
     }
 
-    private final void maybeRemoveLocalFeed()
+    private final void maybeRemoveRootFeed()
     {
         try {
             File f = new File(LOCAL_ROOT_XML_PATH);
@@ -409,7 +412,7 @@ public class Trook extends Activity
         catch (Throwable ign) {}
     }
 
-    private final void saveAsLocalFeed()
+    private final void bookmarkFeed()
     {
         if (m_curfeedview == null) {
             displayError("No feed here");
@@ -419,38 +422,41 @@ public class Trook extends Activity
         String uri = m_curfeedview.m_uri;
         if ((uri == null) ||
             !(uri.startsWith("http://"))) {
-            displayError("Can only save http URLs\n"+uri);
+            displayError("Can only bookmark http URLs\n"+uri);
             return;
         }
 
-        // Start off a download service to fetch the given
-        // uri to the default feed root.
+        String title = sanitizeTitle(m_curfeedview.m_title.getText(), uri);
+
+        Writer w = null;
+
         try {
-            Intent i = new Intent();
-            i.setDataAndType
-                (Uri.parse(uri), "application/octet-stream");
-            i.setComponent
-                (new ComponentName
-                 ("com.kbs.trook", "com.kbs.trook.DownloadService"));
-            i.putExtra(DownloadService.TARGET, LOCAL_ROOT_XML_PATH);
-            startService(i);
-            displayShortMessage("Storing feed in the background");
+            maybeCreateFeedDirectory();
+            File tg = new File(FEED_DIR+"/"+title+".bookmark");
+            w = new FileWriter(tg);
+            w.write(uri);
         }
         catch (Throwable th) {
-            Log.d(TAG, "download failed", th);
-            displayError("Failed to load "+uri+"\n"+th);
+            Log.d(TAG, "Saving "+uri+" failed", th);
+            displayShortMessage("Failed to bookmark\n"+th);
         }
-    }
+        finally {
+            if (w != null) {
+                try { w.close(); }
+                catch (Throwable ign) {}
+            }
+        }
+    }        
 
     @Override
     public void onCreateContextMenu
         (ContextMenu menu, View v, ContextMenu.ContextMenuInfo mi)
     {
         super.onCreateContextMenu(menu, v, mi);
-        menu.setHeaderTitle("Settings");
+        menu.setHeaderTitle(Version.VERSION+" settings");
         menu.add(Menu.NONE, CANCEL_ID, Menu.NONE, "Cancel");
-        menu.add(Menu.NONE, SAVE_ID, Menu.NONE,
-                 "Save this feed as the default");
+        menu.add(Menu.NONE, BOOKMARK_ID, Menu.NONE,
+                 "Bookmark to my feeds");
         menu.add(Menu.NONE, RESET_ID, Menu.NONE,
                  "Restore default feed");
         menu.add(Menu.NONE, CLOSE_ID, Menu.NONE,
@@ -466,13 +472,13 @@ public class Trook extends Activity
             return super.onContextItemSelected(item);
         case RESET_ID:
             setFeedRootPrefs(null);
-            maybeRemoveLocalFeed();
+            maybeRemoveRootFeed();
             return super.onContextItemSelected(item);
         case CLOSE_ID:
             finish();
             return true;
-        case SAVE_ID:
-            saveAsLocalFeed();
+        case BOOKMARK_ID:
+            bookmarkFeed();
             return super.onContextItemSelected(item);
         default:
             return super.onContextItemSelected(item);
@@ -636,30 +642,10 @@ public class Trook extends Activity
         ViewGroup el = (ViewGroup)
             getLayoutInflater().inflate
             (R.layout.entryview, fv.m_entries, false);
-        Button doit = (Button)
+        ImageButton doit = (ImageButton)
             el.findViewById(R.id.doit);
-        ImageView ib = (ImageView)
-            el.findViewById(R.id.icon);
 
-        // Check if we have any epub download links
-
-        /*
-          This is too simpleminded to get icons. TBD
-        String iuri = ei.getIconUri();
-        if (iuri != null) {
-            try {
-                URI base = new URI(fi.getUri());
-                URI ref = URIUtils.resolve(base, iuri);
-                ib.setImageURI(Uri.parse(ref.toString()));
-            }
-            catch (Throwable th) {
-                iuri = null;
-            }
-        }
-
-        */
-
-        // At least deal with file icons
+        // Special case for "file" icon uris
         String iuri = ei.getIconUri();
         boolean iuri_set = false;
         if (iuri != null) {
@@ -668,7 +654,7 @@ public class Trook extends Activity
             if ("file".equals(uri.getScheme())) {
                 // Surprisingly, this takes a path rather
                 // than a URI
-                ib.setImageURI(Uri.parse(uri.getPath()));
+                doit.setImageURI(Uri.parse(uri.getPath()));
                 iuri_set = true;
             }
         }
@@ -685,21 +671,21 @@ public class Trook extends Activity
 
             String type = li.getAttribute("type");
             if ("application/epub+zip".equals(type)) {
-                doit.setText(R.string.epub_download_text);
+                // doit.setText(R.string.epub_download_text);
                 
                 doit.setOnClickListener
                     (makeEpubDownloadClicker
                      (baseuri, href, type, ei));
-                ib.setImageResource(R.drawable.epub);
+                doit.setImageResource(R.drawable.epub_download);
                 did_something = true;
                 break;
             }
             else if ("trook/directory".equals(type)) {
-                doit.setText(R.string.directory_text);
+                // doit.setText(R.string.directory_text);
                 doit.setOnClickListener
                     (new DirectoryClicker(href));
                 if (!iuri_set) {
-                    ib.setImageResource(R.drawable.directory);
+                    doit.setImageResource(R.drawable.directory);
                 }
                 did_something = true;
                 break;
@@ -707,51 +693,51 @@ public class Trook extends Activity
             else if ("trook/epub".equals(type) ||
                      "trook/pdf".equals(type) ||
                      "trook/pdb".equals(type)) {
-                doit.setText(R.string.readbook_text);
+                // doit.setText(R.string.readbook_text);
                 doit.setOnClickListener
                     (new ReadBookClicker(href, type));
                 if (!iuri_set) {
-                    ib.setImageResource(R.drawable.epub);
+                    doit.setImageResource(R.drawable.epub);
                 }
                 did_something = true;
                 break;
             }
             else if ("audio/mp3".equals(type)) {
-                doit.setText(R.string.mp3_download_text);
+                // doit.setText(R.string.mp3_download_text);
                 doit.setOnClickListener
                     (new DownloadClicker
                      (baseuri, href,
                       "/system/media/sdcard/my music/"+
                       sanitizeUniqueName(baseuri, href)+".mp3", type));
-                ib.setImageResource(R.drawable.mp3);
+                doit.setImageResource(R.drawable.mp3);
                 did_something = true;
                 break;
             }
             else if ("application/vnd.android.package-archive".equals(type)) {
-                doit.setText(R.string.apk_download_text);
+                // doit.setText(R.string.apk_download_text);
 
                 doit.setOnClickListener
                     (new DownloadClicker
                      (baseuri, href,
                       sanitizeUniqueName(baseuri, href)+".apk", type));
-                ib.setImageResource(R.drawable.apk);
+                doit.setImageResource(R.drawable.apk);
                 did_something = true;
                 break;
             }                
             else if ("application/atom+xml".equals(type)) {
-                doit.setText(R.string.feed_text);
+                // doit.setText(R.string.feed_text);
                 doit.setOnClickListener
                     (new LaunchFeed(baseuri, href));
-                ib.setImageResource(R.drawable.feed);
+                doit.setImageResource(R.drawable.feed);
                 did_something = true;
                 break;
             }
             else if ("text/html".equals(type) ||
                      "text/xhtml".equals(type) ||
                      null == type) {
-                doit.setText(R.string.view_text);
+                // doit.setText(R.string.view_text);
                 doit.setOnClickListener(new LaunchBrowser(href));
-                ib.setImageResource(R.drawable.webkit);
+                doit.setImageResource(R.drawable.webkit);
                 did_something = true;
                 String pr = li.getAttribute("preferred");
                 if ("true".equals(pr)) {
@@ -774,10 +760,10 @@ public class Trook extends Activity
             el.findViewById(R.id.entry);
         String content = "";
         if (ei.getTitle() != null) {
-            content += "<h3>"+ei.getTitle()+"</h3>";
+            content += "<b>"+ei.getTitle()+"</b><br/><br/>";
         }
         if (ei.getAuthor() != null) {
-            content+="<h5>"+ei.getAuthor()+"</h5>";
+            content+="&nbsp;&nbsp;&nbsp;&nbsp;by "+ei.getAuthor()+"<br/><br/>";
         }
         boolean made_summary = false;
         if (ei.getContent() != null) {
@@ -789,7 +775,7 @@ public class Trook extends Activity
             made_summary = true;
         }
         if (!made_summary) {
-            etv.setMaxWidth(150);
+            etv.setMaxWidth(140);
         }
         etv.setText(Html.fromHtml(content));
         fv.m_entries.addView(el);
@@ -837,6 +823,19 @@ public class Trook extends Activity
         String author = ei.getAuthor();
         if (author == null) {
             author = "Unknown";
+        }
+
+        // Attempt to normalize the author by Lastname, First -- a crude
+        // stab, doesn't always work.
+        if (author.indexOf(',') < 0) {
+            // No commas
+            String[] items = author.split("\\s+");
+            if (items.length > 1) {
+                author = items[items.length-1] + ",";
+                for (int i=0; i<items.length-1; i++) {
+                    author += " "+items[i];
+                }
+            }
         }
 
         String title = ei.getTitle();
@@ -1041,7 +1040,6 @@ public class Trook extends Activity
                     dsi.setComponent
                         (new ComponentName
                          ("com.kbs.trook", "com.kbs.trook.DownloadService"));
-                    maybeCreateFeedDirectory();
                     startService(dsi);
                 }
                 displayShortMessage("Starting download in the background");
@@ -1064,6 +1062,22 @@ public class Trook extends Activity
             packageManager.queryIntentActivities
             (msg, PackageManager.MATCH_DEFAULT_ONLY);
         return list.size() > 0;
+    }
+
+    private final static String sanitizeTitle(CharSequence title, String uri)
+    {
+        // Try to use the title if possible.
+        if ((title != null) && (title.length() > 0)) {
+            String t = title.toString();
+            return t.replaceAll("[\\/:]", " - ");
+        }
+        // Otherwise, just the hostname
+        Uri auri = Uri.parse(uri);
+        String ret = auri.getHost();
+        if (ret == null) {
+            ret = "Unknown feed";
+        }
+        return ret;
     }
 
     private final class LaunchBrowser
@@ -1202,7 +1216,7 @@ public class Trook extends Activity
         "asset:default_root_feed.xml";
     private final static String LOCAL_ROOT_XML_PATH =
         "/system/media/sdcard/my feeds/root.xml";
-    private final static String LOCAL_ROOT_XML_DIR =
+    private final static String FEED_DIR =
         "/system/media/sdcard/my feeds";
     private final static String MYDOC_ROOT_PATH =
         "/system/media/sdcard/my documents/";
@@ -1218,6 +1232,6 @@ public class Trook extends Activity
     private static final int CLOSE_ID = 2;
     private static final int CANCEL_ID = 3;
     private static final int RESET_ID = 4;
-    private static final int SAVE_ID = 5;
+    private static final int BOOKMARK_ID = 5;
 }
 
