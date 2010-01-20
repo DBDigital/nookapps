@@ -126,15 +126,13 @@ public class ConnectUtils
         NetworkInfo ni = cm.getActiveNetworkInfo();
 
         // Log.d(TAG, "Network info is "+ni);
-        return true; // for emulator
+        // return true; // for emulator
 
-        /*
         if (ni == null) { return false; }
         if (ni.getType() != ConnectivityManager.TYPE_WIFI) {
             return false;
         }
         return ni.isConnected();
-        */
     }
 
     private final static Object newlock
