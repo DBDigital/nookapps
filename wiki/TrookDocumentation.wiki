@@ -30,7 +30,9 @@ appear next to the settings. Click on it to search the current catalog.
 
 ==Can I access my Calibre catalog?==
 
-Yes -- start up your calibre server, and load the feed <pre>http://server-ip:8080/stanza</pre> You can also bookmark it to "my feeds" so it's conveniently accessible from then on. (Thanks to [http://code.google.com/u/sethcohn/ sethcon] for the tip. Also, please see [http://code.google.com/u/dpierron/ dpierron]'s pointer to his [http://davidsoft.free.fr/calibre2opds/calibre2opds/Welcome.html calibre2opds] system in the comments below.)
+Yes -- start up your calibre server, and load the feed <pre>http://server-ip:8080/stanza</pre> You can also bookmark it to "my feeds" so it's conveniently accessible from then on. (Thanks to [http://code.google.com/u/sethcohn/ sethcon] for the tip.)
+
+Also, please see [http://code.google.com/u/dpierron/ dpierron]'s pointer to his [http://davidsoft.free.fr/calibre2opds/calibre2opds/Welcome.html calibre2opds] system (see his comments below) for a way to extract and publish your stanza catalog/books to a service like [http://dropbox.com Dropbox], so you can access your catalog more easily on the internet.
  
 ==How do I change the startup menu?==
 
