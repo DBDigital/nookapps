@@ -395,7 +395,7 @@ public class Trook extends Activity
         m_titles.put(fi.getUri(), fi.getTitle());
 
         FeedViewCache.FeedView cached =
-            m_feedviewcache.getFeedView(fi.getUri());
+            m_feedviewcache.getFeedViewNoLRUUpdate(fi.getUri());
         if (cached == null) {
             Log.d(TAG, fi.getUri()+" not cached, ignoring...");
             return;
@@ -613,7 +613,7 @@ public class Trook extends Activity
         Log.d(TAG, "Got a search info!");
         // Only add if we have it cached somewhere
         FeedViewCache.FeedView fv =
-            m_feedviewcache.getFeedView(fi.getUri());
+            m_feedviewcache.getFeedViewNoLRUUpdate(fi.getUri());
         if (fv == null) {
             // ignore
             return;
@@ -633,7 +633,7 @@ public class Trook extends Activity
         FeedInfo fi = ei.getFeedInfo();
         // Only add if we have it cached somewhere
         FeedViewCache.FeedView fv =
-            m_feedviewcache.getFeedView(fi.getUri());
+            m_feedviewcache.getFeedViewNoLRUUpdate(fi.getUri());
         if (fv == null) {
             // ignore
             return;

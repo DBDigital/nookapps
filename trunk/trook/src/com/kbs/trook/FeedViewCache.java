@@ -37,6 +37,23 @@ public class FeedViewCache
         return null;
     }
 
+    public FeedView getFeedViewNoLRUUpdate(String uri)
+    {
+        // scoot through our list, but don't move it
+        // up in front even if found
+        synchronized (m_views) {
+            int vmax = m_views.size();
+            for (int i=0; i<vmax; i++) {
+                FeedView fv = m_views.get(i);
+                if (fv.m_uri.equals(uri)) {
+                    return fv;
+                }
+            }
+        }
+        return null;
+    }
+
+
     public void removeFeedView(String uri)
     {
         synchronized (m_views) {
@@ -65,7 +82,7 @@ public class FeedViewCache
                     m_views.remove(idx);
                     vmax--;
                 }
-                if (vmax > MAX) {
+                if (idx > MAX) {
                     m_views.remove(idx);
                     vmax--;
                 }
@@ -94,6 +111,9 @@ public class FeedViewCache
             m_entries = entries;
         }
 
+        public String toString()
+        { return "fv ["+m_uri+"]"; }
+
         public final String m_uri;
         public final View m_root;
         public final TextView m_title;
@@ -101,4 +121,5 @@ public class FeedViewCache
         public final ImageButton m_search;
         public final ViewGroup m_entries;
     }
+    private final static String TAG = "feed-view-cache";
 }
