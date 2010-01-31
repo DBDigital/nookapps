@@ -61,6 +61,7 @@ public class Trook extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        m_preferences = getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
         m_webview = (WebView) findViewById(R.id.webview);
         m_webview.setClickable(false);
         m_webview.getSettings().setJavaScriptEnabled(true);
@@ -85,7 +86,6 @@ public class Trook extends Activity
     }
 
     private void maybeCreateFeedDirectory()
-        throws IOException
     {
         File f = new File(FEED_DIR);
         if (!f.exists()) {
@@ -156,6 +156,7 @@ public class Trook extends Activity
             (getApplicationContext(),
              msg, Toast.LENGTH_LONG).show();
     }
+
     final void displayShortMessage(String msg)
     {
         Toast.makeText
@@ -163,17 +164,10 @@ public class Trook extends Activity
              msg, Toast.LENGTH_SHORT).show();
     }
 
-    final String getFeedRootPrefs()
-    {
-        // Priority: first the preferences
-        SharedPreferences settings =
-            getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
-        return settings.getString(TROOK_ROOT_URI, null);
-    }
-
     final String getFeedRoot()
     {
-        String ret = getFeedRootPrefs();
+        // Priority: first from any preferences
+        String ret = getPrefsString(TROOK_ROOT_URI, null);
         if (ret == null) {
             // next the file system
             File f = new File(LOCAL_ROOT_XML_PATH);
@@ -186,9 +180,7 @@ public class Trook extends Activity
 
     final void setFeedRootPrefs(String s)
     {
-        SharedPreferences settings =
-            getSharedPreferences(TROOK_PREFS, MODE_WORLD_READABLE);
-        SharedPreferences.Editor editor = settings.edit();
+        SharedPreferences.Editor editor = m_preferences.edit();
         if (s != null) {
             editor.putString(TROOK_ROOT_URI, s);
         }
@@ -351,7 +343,10 @@ public class Trook extends Activity
             boolean success = false;
             try {
                 success =
-                    ConnectUtils.waitForService(this, WIFI_TIMEOUT);
+                    ConnectUtils.waitForService
+                    (this,
+                     getPrefsLong
+                     (PREFS_WIFI_TIMEOUT, DEFAULT_WIFI_TIMEOUT));
                 return new WifiStatus
                     (success, "Network failed to turn on");
             }
@@ -374,7 +369,10 @@ public class Trook extends Activity
             // First, acquire a timeout lock just so we give ourselves
             // some time before someone else needs the network
             try {
-                ConnectUtils.acquire(m_wifitimelock, WIFI_HOLDON);
+                ConnectUtils.acquire
+                    (m_wifitimelock,
+                     getPrefsLong
+                     (PREFS_WIFI_HOLDON, DEFAULT_WIFI_HOLDON));
             }
             finally {
                 // No matter what, remove the reference to the
@@ -664,24 +662,54 @@ public class Trook extends Activity
 
         for (FeedInfo.LinkInfo li : ei.getLinks()) {
             String href = li.getAttribute("href");
-
+            
             if (href == null) {
                 continue;
             }
 
+            URI uriref;
+            try { uriref = URIUtils.resolve(new URI(baseuri), href); }
+            catch (Throwable th) {
+                Log.d(TAG, "Ignoring link "+href, th);
+                continue;
+            }
+
             String type = li.getAttribute("type");
-            if ("application/epub+zip".equals(type)) {
-                // doit.setText(R.string.epub_download_text);
-                
-                doit.setOnClickListener
-                    (makeEpubDownloadClicker
-                     (baseuri, href, type, ei));
-                doit.setImageResource(R.drawable.epub_download);
+
+            if (isABook(type) ||
+                isAnAudio(type) ||
+                isAPackage(type)) {
+
+                // These are downloadable/viewable media, so switch
+                // to view/download, depending on whether the href
+                // is remote or local
+
+                boolean islocal = "file".equals(uriref.getScheme());
+
+                if (islocal) {
+                    doit.setOnClickListener
+                        (new MimeViewClicker(uriref, type));
+                    if (!iuri_set) {
+                        doit.setImageResource
+                            (getDefaultIconResource(type, islocal));
+                    }
+                }
+                else {
+                    doit.setOnClickListener
+                        (makeMimeDownloadClicker(baseuri, href, type, ei));
+                    doit.setImageResource
+                        (getDefaultIconResource(type, islocal));
+                }
                 did_something = true;
                 break;
             }
-            else if ("trook/directory".equals(type)) {
-                // doit.setText(R.string.directory_text);
+            else if (IMimeConstants.MIME_TROOK_DIRECTORY.equals(type)) {
+                // Verify I really have a directory here
+                Uri chk = Uri.parse(href);
+                if (chk == null) { return; }
+                File fchk = new File(chk.getPath());
+                if (!fchk.isDirectory()) { return; }
+
                 doit.setOnClickListener
                     (new DirectoryClicker(href));
                 if (!iuri_set) {
@@ -690,52 +718,16 @@ public class Trook extends Activity
                 did_something = true;
                 break;
             }
-            else if ("trook/epub".equals(type) ||
-                     "trook/pdf".equals(type) ||
-                     "trook/pdb".equals(type)) {
-                // doit.setText(R.string.readbook_text);
-                doit.setOnClickListener
-                    (new ReadBookClicker(href, type));
-                if (!iuri_set) {
-                    doit.setImageResource(R.drawable.epub);
-                }
-                did_something = true;
-                break;
-            }
-            else if ("audio/mp3".equals(type)) {
-                // doit.setText(R.string.mp3_download_text);
-                doit.setOnClickListener
-                    (new DownloadClicker
-                     (baseuri, href,
-                      "/system/media/sdcard/my music/"+
-                      sanitizeUniqueName(baseuri, href)+".mp3", type));
-                doit.setImageResource(R.drawable.mp3);
-                did_something = true;
-                break;
-            }
-            else if ("application/vnd.android.package-archive".equals(type)) {
-                // doit.setText(R.string.apk_download_text);
-
-                doit.setOnClickListener
-                    (new DownloadClicker
-                     (baseuri, href,
-                      sanitizeUniqueName(baseuri, href)+".apk", type));
-                doit.setImageResource(R.drawable.apk);
-                did_something = true;
-                break;
-            }                
-            else if ("application/atom+xml".equals(type)) {
-                // doit.setText(R.string.feed_text);
+            else if (IMimeConstants.MIME_ATOM_XML.equals(type)) {
                 doit.setOnClickListener
                     (new LaunchFeed(baseuri, href));
                 doit.setImageResource(R.drawable.feed);
                 did_something = true;
                 break;
             }
-            else if ("text/html".equals(type) ||
-                     "text/xhtml".equals(type) ||
+            else if (IMimeConstants.MIME_HTML.equals(type) ||
+                     IMimeConstants.MIME_XHTML.equals(type) ||
                      null == type) {
-                // doit.setText(R.string.view_text);
                 doit.setOnClickListener(new LaunchBrowser(href));
                 doit.setImageResource(R.drawable.webkit);
                 did_something = true;
@@ -782,14 +774,42 @@ public class Trook extends Activity
         // Log.d(TAG, "Added view with "+ei.getTitle());
     }
 
-    private final DownloadClicker makeEpubDownloadClicker
+    private final int getDefaultIconResource(String type, boolean islocal)
+    {
+        if (IMimeConstants.MIME_EPUB_ZIP.equals(type) ||
+            IMimeConstants.MIME_EPUB.equals(type)) {
+            return islocal?R.drawable.epub:R.drawable.epub_download;
+        }
+
+        if (IMimeConstants.MIME_PDF.equals(type)) {
+            return islocal?R.drawable.pdf:R.drawable.pdf_download;
+        }
+        
+        if (IMimeConstants.MIME_PDB.equals(type)) {
+            return islocal?R.drawable.pdb:R.drawable.pdb_download;
+        }
+
+        if (IMimeConstants.MIME_MP3.equals(type)) {
+            return islocal?R.drawable.mp3:R.drawable.mp3_download;
+        }
+
+        if (IMimeConstants.MIME_APK.equals(type)) {
+            return islocal?R.drawable.apk:R.drawable.apk_download;
+        }
+
+        // random catch-all thing
+        Log.d(TAG, "Unknown icon type "+type);
+        return R.drawable.epub;
+    }
+
+    private final DownloadClicker makeMimeDownloadClicker
         (String baseuri, String href, String type, FeedInfo.EntryInfo ei)
     {
-        // Attempt to download a thumbnail icon if something's here
         String[] hrefs;
         String[] mimes;
         String[] targets;
 
+        // Attempt to download a thumbnail icon if something's here
         if (ei.getIconUri() == null) {
             hrefs = new String[1];
             mimes = new String[1];
@@ -802,31 +822,103 @@ public class Trook extends Activity
 
             hrefs[1] = ei.getIconUri();
             mimes[1] = "image";
-            targets[1] = makeEpubPath(baseuri, href, ei)+".jpg";
+            targets[1] = makeDownloadPath(baseuri, href, ei, type, ".jpg");
         }
 
         hrefs[0] = href;
-        mimes[0] = "application/epub+zip";
-        targets[0] = makeEpubPath(baseuri, href, ei)+".epub";
+        mimes[0] = type;
+        targets[0] = makeDownloadPath(baseuri, href, ei, type, null);
         return new DownloadClicker
             (baseuri, hrefs, targets, mimes);
     }
 
-    private final static String makeEpubPath
-        (String baseuri, String href, FeedInfo.EntryInfo ei)
+    private final String makeDownloadPath
+        (String baseuri, String href, FeedInfo.EntryInfo ei,
+         String type, String suffix)
     {
-        // For a slightly less insane way to organize book paths for
-        // downloaded content, I attempt to organize things in two
-        // levels -- an author, and the title, and create extra
-        // numbers at the end if there's a file like this already.
+        // For a slightly less insane way to make paths to downloaded items
+        // consistent, by some personal definition of consistency:
+        //
+        // I first group downloads by type, and attempt to put things
+        // into any B&N buckets (eg: books and music). For other
+        // types, I make up a root location.
+        //
+        // Next, I place things in a 2-level hierarchy -- by author, and
+        // then by title. If there's no author, it's called "unknown". If
+        // there's no title, I make one up by mashing up the URL. If there's
+        // a file already with that exact path (typically a re-download, or
+        // a bug in my attempt to make a path) I prepend a number to avoid
+        // overwriting the file of interest.
+        //
+        // Let me know if you have other suggestions on how to manage
+        // this.
 
         String author = ei.getAuthor();
         if (author == null) {
             author = "Unknown";
         }
 
-        // Attempt to normalize the author by Lastname, First -- a crude
-        // stab, doesn't always work.
+        // Determine a top-level root.
+        String root;
+        String type_suffix;
+        if (isABook(type)) {
+            root =
+                getPrefsString
+                (PREFS_DOC_DOWNLOAD_ROOT,
+                 DEFAULT_DOC_DOWNLOAD_ROOT);
+            if (IMimeConstants.MIME_PDF.equals(type)) {
+                type_suffix = ".pdf";
+            }
+            else if (IMimeConstants.MIME_PDB.equals(type)) {
+                type_suffix = ".pdb";
+            }
+            else {
+                type_suffix = ".epub"; // oh well.
+            }
+            author = lastNameify(author); // ah, what an ugly function name
+        }
+        else if (isAnAudio(type)) {
+            root =
+                getPrefsString
+                (PREFS_MUSIC_DOWNLOAD_ROOT,
+                 DEFAULT_MUSIC_DOWNLOAD_ROOT);
+            type_suffix = ".mp3";
+        }
+        else if (isAPackage(type)) {
+            root =
+                getPrefsString
+                (PREFS_PACKAGE_DOWNLOAD_ROOT,
+                 DEFAULT_PACKAGE_DOWNLOAD_ROOT);
+            type_suffix = ".apk";
+        }
+        else {
+            root =
+                getPrefsString
+                (PREFS_FALLBACK_DOWNLOAD_ROOT,
+                 DEFAULT_FALLBACK_DOWNLOAD_ROOT);
+            type_suffix = "";
+        }
+
+        String title = ei.getTitle();
+        if (title == null) {
+            // to have some vague chance of figuring out
+            // where this came from, I fall back to
+            // the base URI.
+            title = sanitizeUniqueName(baseuri, href);
+        }
+
+        if (suffix == null) {
+            return root + "/"+author+"/"+title+type_suffix;
+        }
+        else {
+            return root +"/"+author+"/"+title+suffix;
+        }
+    }
+
+    private final static String lastNameify(String author)
+    {
+        // Juvenile attempt to normalize the author by
+        // Lastname, It Doesn't Always Work, Does It?
         if (author.indexOf(',') < 0) {
             // No commas
             String[] items = author.split("\\s+");
@@ -837,17 +929,14 @@ public class Trook extends Activity
                 }
             }
         }
-
-        String title = ei.getTitle();
-        if (title == null) {
-            // to have some vague chance of figuring out
-            // what book this really is, I fall back to
-            // the base URI.
-            title = sanitizeUniqueName(baseuri, href);
-        }
-
-        return MYDOC_ROOT_PATH+"/"+author+"/"+title;
+        return author;
     }
+
+    private final String getPrefsString(String k, String dflt)
+    { return m_preferences.getString(k, dflt); }
+
+    private final long getPrefsLong(String k, long dflt)
+    { return m_preferences.getLong(k, dflt); }
 
     private final static String sanitizeUniqueName
         (String baseuri, String href)
@@ -965,43 +1054,44 @@ public class Trook extends Activity
         private final String m_diruri;
     }
 
-    private final class ReadBookClicker
+    private final class MimeViewClicker
         implements View.OnClickListener
     {
-        private ReadBookClicker(String uri, String type)
+        private MimeViewClicker(URI uri, String type)
         {
             m_uri = uri;
 
             // translations for intent
-            if ("trook/epub".equals(type)) {
-                m_type = "application/epub";
-            }
-            else if ("trook/pdf".equals(type)) {
-                m_type = "application/pdf";
-            }
-            else if ("trook/pdb".equals(type)) {
-                m_type = "application/pdb";
+            if (IMimeConstants.MIME_EPUB_ZIP.equals(type)) {
+                m_type = IMimeConstants.MIME_EPUB;
             }
             else {
-                throw new IllegalArgumentException
-                    ("Unexpected mime type -- "+type);
+                m_type = type;
+            }
+
+            if (isABook(type)) {
+                m_intent = "com.bravo.intent.action.VIEW";
+            }
+            else {
+                m_intent = Intent.ACTION_VIEW;
             }
         }
 
         public void onClick(View v)
         {
-            Intent ri = new Intent("com.bravo.intent.action.VIEW");
-            ri.setDataAndType(Uri.parse(m_uri), m_type);
+            Intent ri = new Intent(m_intent);
+            ri.setDataAndType(Uri.parse(m_uri.toString()), m_type);
             try { Trook.this.startActivity(ri); }
             catch (Throwable th) {
-                Log.d(TAG, "Unable to read book", th);
-                Trook.this.displayError(m_uri+"\n: failed to read\n"+
+                Log.d(TAG, "Unable to view "+m_uri+", ("+m_type+")", th);
+                Trook.this.displayError(m_uri+"\n: failed to view\n"+
                                         th.toString());
             }
         }
 
-        private final String m_uri;
+        private final URI m_uri;
         private final String m_type;
+        private final String m_intent;
     }
 
     private final class DownloadClicker
@@ -1080,6 +1170,27 @@ public class Trook extends Activity
         return ret;
     }
 
+    private final static boolean isABook(String type)
+    {
+        return
+            IMimeConstants.MIME_EPUB_ZIP.equals(type) ||
+            IMimeConstants.MIME_EPUB.equals(type) ||
+            IMimeConstants.MIME_PDF.equals(type) ||
+            IMimeConstants.MIME_PDB.equals(type);
+    }
+
+    private final static boolean isAnAudio(String type)
+    {
+        return
+            IMimeConstants.MIME_MP3.equals(type);
+    }
+
+    private final static boolean isAPackage(String type)
+    {
+        return
+            IMimeConstants.MIME_APK.equals(type);
+    }
+
     private final class LaunchBrowser
         implements View.OnClickListener
     {
@@ -1090,7 +1201,7 @@ public class Trook extends Activity
         {
             Intent msg =
                 new Intent(Intent.ACTION_VIEW);
-            msg.setDataAndType(Uri.parse(m_href), "text/html");
+            msg.setDataAndType(Uri.parse(m_href), IMimeConstants.MIME_HTML);
 
             Log.d(TAG, "checking if there's someone who can process "+
                   msg);
@@ -1177,6 +1288,7 @@ public class Trook extends Activity
         private final String m_message;
     }
 
+    private SharedPreferences m_preferences;
     private FeedManager m_feedmanager;
     private FeedViewCache m_feedviewcache;
     private FeedViewCache.FeedView m_curfeedview;
@@ -1210,16 +1322,39 @@ public class Trook extends Activity
     private final static String TAG = "trook";
     private PowerManager.WakeLock m_powerlock = null;
     private final static long POWER_DELAY = 120*1000;
-    private final static long WIFI_TIMEOUT = 60*1000;
-    private final static long WIFI_HOLDON = 120*1000; // extra grace period
+
+    // Wait this long to turn on wifi
+    private final static String PREFS_WIFI_TIMEOUT = "trook.wifi.timeout";
+    private final static long DEFAULT_WIFI_TIMEOUT = 60*1000;
+
+    // keep wifi up for this long after any network operation
+    private final static String PREFS_WIFI_HOLDON = "trook.wifi.holdon";
+    private final static long DEFAULT_WIFI_HOLDON = 300*1000;
+
     public final static String DEFAULT_FEED_URI =
         "asset:default_root_feed.xml";
     private final static String LOCAL_ROOT_XML_PATH =
         "/system/media/sdcard/my feeds/root.xml";
     private final static String FEED_DIR =
         "/system/media/sdcard/my feeds";
-    private final static String MYDOC_ROOT_PATH =
-        "/system/media/sdcard/my documents/";
+
+    // various download areas
+    private final static String PREFS_DOC_DOWNLOAD_ROOT =
+        "trook.doc.download.root";
+    private final static String DEFAULT_DOC_DOWNLOAD_ROOT =
+        "/system/media/sdcard/my documents/Downloads";
+    private final static String PREFS_MUSIC_DOWNLOAD_ROOT =
+        "trook.music.download.root";
+    private final static String DEFAULT_MUSIC_DOWNLOAD_ROOT =
+        "/system/media/sdcard/my music/Downloads";
+    private final static String PREFS_PACKAGE_DOWNLOAD_ROOT =
+        "trook.packages.download.root";
+    private final static String DEFAULT_PACKAGE_DOWNLOAD_ROOT =
+        "/system/media/sdcard/my packages";
+    private final static String PREFS_FALLBACK_DOWNLOAD_ROOT =
+        "trook.fallback.download.root";
+    private final static String DEFAULT_FALLBACK_DOWNLOAD_ROOT =
+        "/system/media/sdcard/my documents/Downloads";
 
     // magic {thanks hari!}
     private static final int NOOK_PAGE_UP_KEY_RIGHT = 98;
@@ -1233,5 +1368,8 @@ public class Trook extends Activity
     private static final int CANCEL_ID = 3;
     private static final int RESET_ID = 4;
     private static final int BOOKMARK_ID = 5;
+
+    // 
+
 }
 

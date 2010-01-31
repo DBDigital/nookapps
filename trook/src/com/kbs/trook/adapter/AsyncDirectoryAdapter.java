@@ -3,6 +3,7 @@ package com.kbs.trook.adapter;
 import com.kbs.backport.AsyncTask;
 import com.kbs.trook.FeedInfo;
 import com.kbs.trook.Trook;
+import com.kbs.trook.IMimeConstants;
 
 import java.util.Date;
 import java.io.IOException;
@@ -142,6 +143,8 @@ public class AsyncDirectoryAdapter
             "pdf".equalsIgnoreCase(suffix) ||
             "pdb".equalsIgnoreCase(suffix) ||
             "xml".equalsIgnoreCase(suffix) ||
+            "apk".equalsIgnoreCase(suffix) ||
+            "mp3".equalsIgnoreCase(suffix) ||
             "bookmark".equalsIgnoreCase(suffix);
     }
 
@@ -162,25 +165,25 @@ public class AsyncDirectoryAdapter
         }
         String suffix = name.substring(idx+1);
         String prefix = name.substring(0, idx);
-        if (suffix.equalsIgnoreCase("xml")) {
-            processXml(f, prefix, suffix);
-        }
-        else if (suffix.equalsIgnoreCase("bookmark")) {
+        if (suffix.equalsIgnoreCase("bookmark")) {
             processBookmark(f, prefix);
         }
         else {
-            processReader(f, prefix, suffix);
+            String m = suffixToMime(suffix);
+            if (m != null) {
+                processAsMime(f, prefix, m);
+            }
         }
     }
 
-    private final void processReader(File f, String name, String suffix)
+    private final void processAsMime(File f, String name, String mime)
     {
         FeedInfo.EntryInfo ei = new FeedInfo.EntryInfo(m_fi);
         ei.setTitle(name);
         String uriref = Uri.fromFile(f).toString();
         FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
         li.setAttribute("href", uriref);
-        li.setAttribute("type", "trook/"+suffix.toLowerCase());
+        li.setAttribute("type", mime);
         ei.addLink(li);
         // This is the Calibre convention [seems to be what the
         // nook uses as well]
@@ -199,6 +202,33 @@ public class AsyncDirectoryAdapter
 
         m_fi.addEntry(ei);
         publishProgress(ei);
+    }
+
+    private final String suffixToMime(String s)
+    {
+        if (s == null) { return null; }
+
+        s = s.toLowerCase();
+        if (s.equals("epub")) {
+            return IMimeConstants.MIME_EPUB_ZIP;
+        }
+        if (s.equals("pdf")) {
+            return IMimeConstants.MIME_PDF;
+        }
+        if (s.equals("pdb")) {
+            return IMimeConstants.MIME_PDB;
+        }
+        if (s.equals("apk")) {
+            return IMimeConstants.MIME_APK;
+        }
+        if (s.equals("mp3")) {
+            return IMimeConstants.MIME_MP3;
+        }
+        if (s.equals("xml")) {
+            return IMimeConstants.MIME_ATOM_XML; // optimistic
+        }
+        Log.d(TAG, "Unknown suffix "+s);
+        return null;
     }
 
     private final void processXml(File f, String name, String suffix)
@@ -281,7 +311,7 @@ public class AsyncDirectoryAdapter
         String uriref = Uri.fromFile(f).toString();
         FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
         li.setAttribute("href", uriref);
-        li.setAttribute("type", "trook/directory");
+        li.setAttribute("type", IMimeConstants.MIME_TROOK_DIRECTORY);
         ei.addLink(li);
         m_fi.addEntry(ei);
         publishProgress(ei);

@@ -28,11 +28,19 @@
     <id>http://nookdevs.googlecode.com/svn/trunk/updatesfeed.xml</id>
     <content type="text">Nook apps, documentation and more from Nookdevs</content>
   </entry>
+
+  <entry>
+    <title>My Packages</title>
+    <link type="trook/directory" href="file:///system/media/sdcard/my%20packages"/>
+    <id>file:///system/media/sdcard/my%20packages</id>
+    <content type="text">Browse my downloaded Android packages.</content>
+  </entry>
+
   <entry>
     <title>My Feeds</title>
     <link type="trook/directory" href="file:///system/media/sdcard/my%20feeds"/>
     <id>file:///system/media/sdcard/my%20feeds</id>
-    <content type="text">Browse my saved feeds</content>
+    <content type="text">Browse my saved feeds.</content>
   </entry>
   <entry>
     <title>B&amp;N Books</title>
@@ -44,6 +52,6 @@
     <title>My Books</title>
     <link type="trook/directory" href="file:///system/media/sdcard/my%20documents"/>
     <id>file:///system/media/sdcard/my%20documents</id>
-    <content type="text">Browse my books</content>
+    <content type="text">Browse my books.</content>
   </entry>
 </feed>
