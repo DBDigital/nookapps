@@ -79,7 +79,7 @@ public class Trook extends Activity
         m_powerlock = pm.newWakeLock
             (PowerManager.SCREEN_DIM_WAKE_LOCK, TAG+":"+hashCode());
         m_powerlock.setReferenceCounted(false);
-
+        m_powerdelay = NookUtils.getScreenSaverDelay(this);
 
         m_dialog = new OneLineDialog(this, m_webview);
         pushViewFromUri(getFeedRoot());
@@ -952,7 +952,7 @@ public class Trook extends Activity
     {
     	super.onUserInteraction();
     	if (m_powerlock != null) {
-            m_powerlock.acquire(POWER_DELAY);
+            m_powerlock.acquire(m_powerdelay);
         }
     }
 
@@ -961,7 +961,7 @@ public class Trook extends Activity
     {
     	super.onResume();
         if (m_powerlock != null) {
-            m_powerlock.acquire(POWER_DELAY);
+            m_powerlock.acquire(m_powerdelay);
         }
         NookUtils.setAppTitle(this, "Trook");
         m_dialog.closeDialog();
@@ -1321,7 +1321,7 @@ public class Trook extends Activity
     private final static String TROOK_ROOT_URI = "trook.rooturi";
     private final static String TAG = "trook";
     private PowerManager.WakeLock m_powerlock = null;
-    private final static long POWER_DELAY = 120*1000;
+    private long m_powerdelay = NookUtils.DEFAULT_SCREENSAVER_DELAY;
 
     // Wait this long to turn on wifi
     private final static String PREFS_WIFI_TIMEOUT = "trook.wifi.timeout";
