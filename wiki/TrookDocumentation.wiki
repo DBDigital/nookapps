@@ -12,6 +12,50 @@ Tap on the little gear looking icon on the title bar, and enter the URL to the f
 Long-click on the gear icon, and you'll find a menu that lets you bookmark the current URL. The bookmark will go into your "my feeds" area, which is accessible from the Trook root screen.
 By the way, a bookmark is just a text file with the suffix <pre>.bookmark</pre> so feel free to create more bookmarks and upload them through USB.
 
+==Where do my downloads go, and how can I change it?==
+
+By default (from Trook rev38 onward) books (epubs, pdfs and pdb files) are downloaded under `my documents/Downloads/` while music file go under `my music/Downloads/` and apk packages go under `my packages/`.  Please see the answer to the next question on how to change this path.
+
+==How do I change the default settings for Foo==
+
+I haven't (yet) provided a straightforward for you to change settings, but in the interim  (from Trook rev38 onwards) you can at least edit the preferences xml file on the Nook to taste, as follows.
+
+Connect over `adb` and copy `/data/data/com.kbs.trook/TrookPreferences.xml` locally somewhere. I run something like
+{{{
+adb pull /data/data/com.kbs.trook/TrookPreferences.xml TrookPreferences.xml
+}}}
+
+There are preferences for several values, here is a list.
+||*Setting key* || *default value* ||
+||`trook.doc.download.root` ||`/system/media/sdcard/my documents/Downloads`||
+||`trook.music.download.root` || `/system/media/sdcard/my music/Downloads`||
+||`trook.packages.download.root`||`/system/media/sdcard/my packages``||
+||`trook.fallback.download.root``||`/system/media/sdcard/my documents/Downloads``||
+||`trook.wifi.timeout`||60000 ms (a long value)||
+||`trook.wifi.holdon`||300000 ms (a long value, how long to keep the wifi on after the last network operation)||
+
+For example, you might prefer to download books to your sdcard rather than the internal storage, which is mounted at `/sdcard` on the Nook. You might also prefer to keep the wifi on for longer than the default 5 minutes.
+
+Edit the `TrookPreferences.xml` file so that it looks like
+
+{{{
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+  <string name="trook.doc.download.root">/sdcard/Downloads</string>
+  <long name="trook.wifi.holdon" value="600000"/>
+</map>
+}}}
+
+Please note the different ways that longs and strings are set in this file.
+
+Finally, copy it back to the nook
+
+{{{
+adb push TrookPreferences.xml /data/data/com.kbs.trook/TrookPreferences.xml
+}}}
+
+Restart Trook (long-click on the gear icon, scroll down and tap the "Stop Application") and bring up Trook again.
+
 ==Can I browse my locally stored books?==
 
 The "my books" entry from the Trook root menu lets you browse your documents, and preserves any folder structure you have there.
