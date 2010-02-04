@@ -56,6 +56,10 @@ adb push TrookPreferences.xml /data/data/com.kbs.trook/TrookPreferences.xml
 
 Restart Trook (long-click on the gear icon, scroll down and tap the "Stop Application") and bring up Trook again.
 
+==How do I enable installing third-party apps from Trook?==
+
+You'll need to update a settings database on the Nook with `sqlite` to enable Trook (or any other app) to install applications directly from the Nook. Please [http://nookapps.googlecode.com/svn/trunk/feed/howto.html see the HOWTO] that provides the recipe for this.
+
 ==Can I browse my locally stored books?==
 
 The "my books" entry from the Trook root menu lets you browse your documents, and preserves any folder structure you have there.
