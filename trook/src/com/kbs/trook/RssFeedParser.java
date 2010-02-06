@@ -8,19 +8,23 @@ public class RssFeedParser
     implements IFeedParser
 {
     public boolean canParse(String rootelement)
-    { return "rss".equals(rootelement); }
+    {
+        return
+            "rss".equals(rootelement) ||
+            "RDF".equals(rootelement);
+    }
 
-    public void parse(XmlPullParser p, AsyncFeedParserTask task)
+    public void parse(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
-        P.assertStart(p, "rss");
+        // P.assertStart(p, "rss"); or "RDF"
         p.next();
 
         while (P.skipToStart(p, null)) {
             String curtag = p.getName();
             // Log.d(TAG, "Current tag is "+curtag);
             if (curtag.equals("channel")) {
-                parseChannel(p, task);
+                parseChannel(p, fpl);
             }
             else {
                 // skip everything else
@@ -30,7 +34,7 @@ public class RssFeedParser
         }
     }
 
-    private final void parseChannel(XmlPullParser p, AsyncFeedParserTask task)
+    private final void parseChannel(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
         P.assertStart(p, "channel");
@@ -40,7 +44,7 @@ public class RssFeedParser
             String curtag = p.getName();
             // Log.d(TAG, "Current tag is "+curtag);
             if (curtag.equals("title")) {
-                FeedInfo fi = task.getFeedInfo();
+                FeedInfo fi = fpl.getFeedInfo();
                 if (fi.getTitle() == null) {
                     fi.setTitle(P.collectText(p));
                 }
@@ -50,7 +54,7 @@ public class RssFeedParser
                 }
             }
             else if (curtag.equals("item")) {
-                parseItem(p, task);
+                parseItem(p, fpl);
             }
             else {
                 // skip everything else
@@ -60,12 +64,12 @@ public class RssFeedParser
         }
     }
 
-    private final void parseItem(XmlPullParser p, AsyncFeedParserTask task)
+    private final void parseItem(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
         P.assertStart(p, "item");
         p.next();
-        FeedInfo fi = task.getFeedInfo();
+        FeedInfo fi = fpl.getFeedInfo();
         FeedInfo.EntryInfo ei = new FeedInfo.EntryInfo(fi);
         while (P.skipToStart(p, null)) {
             String curtag = p.getName();
@@ -79,7 +83,7 @@ public class RssFeedParser
             }
             else if (curtag.equals("origLink")) { // pheedo special
                 FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
-                li.setAttribute("href", task.fix(P.collectText(p)));
+                li.setAttribute("href", fpl.fix(P.collectText(p)));
                 // backdoor info to displayer that URL is likely
                 // to be the best bet.
                 li.setAttribute("preferred", "true");
@@ -126,7 +130,7 @@ public class RssFeedParser
                 if (p.getName().equals("item")) {
                     fi.addEntry(ei);
                     p.next();
-                    task.publishProgress1(ei);
+                    fpl.publishProgress1(ei);
                     // Log.d(TAG, "published one entry");
                     return;
                 }

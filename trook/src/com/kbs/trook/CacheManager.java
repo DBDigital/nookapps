@@ -198,9 +198,17 @@ public class CacheManager
 
             // Check if the timestamp is too old, or
             // for some reason I cannot read the file
+
+            // Timestamping is a less useful technique. The lesser of
+            // evils is to just allow the user to explictly update it.
+
+            /*
             if ((update_ts <
                  (System.currentTimeMillis() - 86400*1000)) ||
                 (!lp.canRead())) {
+            */
+
+            if (!lp.canRead()) {
                 // Delete file and db entry
                 lp.delete();
                 Object dq[] = {new Long(id)};

@@ -16,6 +16,7 @@ import java.io.IOException;
 
 public class AsyncFeedParserTask
     extends AsyncTask<Reader,FeedInfo.EntryInfo,String>
+    implements IFeedParserListener
 {
     public AsyncFeedParserTask(String u, Trook t, ILinkFixer fixer)
     {
@@ -100,7 +101,7 @@ public class AsyncFeedParserTask
         m_error = m_basefile +": failed to load\n"+msg;
     }
 
-    final String fix(String fix)
+    public final String fix(String fix)
     {
         if (m_fixer != null) {
             return m_fixer.fix(fix);
@@ -128,25 +129,25 @@ public class AsyncFeedParserTask
         return false;
     }
 
-    FeedInfo getFeedInfo()
+    public FeedInfo getFeedInfo()
     { return m_fi; }
 
-    Resources getResources()
-    { return m_trook.getResources(); }
+    public String getStringResource(int v)
+    { return m_trook.getResources().getString(v); }
 
-    void setResolvePath(String s)
+    public void setResolvePath(String s)
     { m_resolvepath = s; }
 
-    String getResolvePath()
+    public String getResolvePath()
     { return m_resolvepath; }
  
-    void setStanzaSearchUrl(String s)
+    public void setStanzaSearchUrl(String s)
     { m_stanzasearchurl = s; }
 
-    void setOpenSearchUrl(String s)
+    public void setOpenSearchUrl(String s)
     { m_opensearchurl = s; }
 
-    void publishProgress1(FeedInfo.EntryInfo... v)
+    public void publishProgress1(FeedInfo.EntryInfo... v)
     { publishProgress(v); }
 
     private FeedInfo m_fi;

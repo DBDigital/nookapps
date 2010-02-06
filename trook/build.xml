@@ -44,6 +44,39 @@
         <pathelement path="${sdk.dir}/tools/lib/jarutils.jar" />
     </path>
 
+    <target name="runtests" depends="compiletests">
+      <junit haltonerror="false" haltonfailure="false">
+        <classpath>
+          <fileset dir="${external-libs-folder}" includes="*.jar"/>
+          <pathelement path="${out-classes}"/>
+          <pathelement path="${out-test-classes}"/>
+          <fileset dir="${libs-test-folder}" includes="*.jar"/>
+        </classpath>
+        <batchtest>
+          <formatter type="plain" usefile="false"/>
+          <fileset dir="${source-test-folder}">
+            <include name="**/*Test*.java"/>
+            <exclude name="**/AllTests.java"/>
+          </fileset>
+        </batchtest>
+      </junit>
+    </target>
+
+    <target name="compiletests" depends="compile">
+      <mkdir dir="${out-test-classes}"/>
+      <javac encoding="ascii" target="1.5" debug="true" extdirs=""
+             destdir="${out-test-classes}"
+             bootclasspathref="android.target.classpath">
+        <compilerarg value="-Xlint"/>
+        <src path="${source-test-folder}" />
+        <classpath>
+          <fileset dir="${external-libs-folder}" includes="*.jar"/>
+          <pathelement path="${out-classes}"/>
+          <fileset dir="${libs-test-folder}" includes="*.jar"/>
+        </classpath>
+      </javac>
+    </target>
+
     <taskdef name="setup"
         classname="com.android.ant.SetupTask"
         classpathref="android.antlibs" />

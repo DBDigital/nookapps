@@ -19,6 +19,6 @@ public interface IFeedParser
     // when interesting stuff happens. [The AsyncFeedParserTask
     // should be abstracted away as well, but this is an intermediate
     // step.]
-    public void parse(XmlPullParser p, AsyncFeedParserTask parent)
+    public void parse(XmlPullParser p, IFeedParserListener parent)
         throws IOException, XmlPullParserException;
 }

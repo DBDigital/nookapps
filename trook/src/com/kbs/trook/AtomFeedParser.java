@@ -15,14 +15,14 @@ public class AtomFeedParser
     public boolean canParse(String rootelement)
     { return "feed".equals(rootelement); }
 
-    public void parse(XmlPullParser p, AsyncFeedParserTask task)
+    public void parse(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
         P.assertStart(p, "feed");
         p.next();
 
         FeedInfo.EntryInfo nxt = null;
-        FeedInfo fi = task.getFeedInfo();
+        FeedInfo fi = fpl.getFeedInfo();
 
         while (P.skipToStart(p, null)) {
             String curtag = p.getName();
@@ -40,10 +40,10 @@ public class AtomFeedParser
                 fi.setIconUri(P.collectText(p));
             }
             else if (curtag.equals("author")) {
-                parseAuthor(p, task);
+                parseAuthor(p, fpl);
             }
             else if (curtag.equals("entry")) {
-                parseEntry(p, task);
+                parseEntry(p, fpl);
             }
             else if (curtag.equals("link")) {
                 FeedInfo.LinkInfo li = parseLink(p);
@@ -62,26 +62,24 @@ public class AtomFeedParser
                     }
                     else {
                         nxt.setTitle
-                            (task.getResources()
-                             .getText(R.string.next_title)
-                             .toString());
+                            (fpl.getStringResource(R.string.next_title));
                     }
                     nxt.setContent("");
                 }
                 else if ("self".equals(li.getAttribute("rel")) &&
                          (li.getAttribute("href") != null)) {
-                    task.setResolvePath(li.getAttribute("href"));
+                    fpl.setResolvePath(li.getAttribute("href"));
                 }
                 // Feedbooks uses opensearch
                 else if (isOpenSearchLink(li)) {
                     // Log.d(TAG, "Found an OpenSearch tag!");
                     try {
-                        URI base = new URI(task.getResolvePath());
+                        URI base = new URI(fpl.getResolvePath());
                         URI sref =
                             URIUtils.resolve(base, li.getAttribute("href"));
-                        task.setOpenSearchUrl(sref.toString());
+                        fpl.setOpenSearchUrl(sref.toString());
                         // This is a very goofy way to do this, I'm sorry
-                        task.publishProgress1((FeedInfo.EntryInfo[])null);
+                        fpl.publishProgress1((FeedInfo.EntryInfo[])null);
                     }
                     catch (Throwable ig) {
                         Log.d(TAG, "Ignoring search error", ig);
@@ -90,8 +88,8 @@ public class AtomFeedParser
                 // lexcycle/stanza embeds it directly, simpler...
                 else if (isStanzaSearchLink(li)) {
                     // Log.d(TAG, "Found a stanza search link");
-                    task.setStanzaSearchUrl(li.getAttribute("href"));
-                    task.publishProgress1((FeedInfo.EntryInfo[])null);
+                    fpl.setStanzaSearchUrl(li.getAttribute("href"));
+                    fpl.publishProgress1((FeedInfo.EntryInfo[])null);
                 }
             }
             else {
@@ -105,25 +103,25 @@ public class AtomFeedParser
         if (nxt != null) {
             // Log.d(TAG, "ADDED a next entry!!!");
             fi.addEntry(nxt);
-            task.publishProgress1(nxt);
+            fpl.publishProgress1(nxt);
         }
     }
 
-    private final void parseAuthor(XmlPullParser p, AsyncFeedParserTask task)
+    private final void parseAuthor(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
         P.assertStart(p, "author");
         P.skipThisBlock(p);
     }
 
-    private final void parseEntry(XmlPullParser p, AsyncFeedParserTask task)
+    private final void parseEntry(XmlPullParser p, IFeedParserListener fpl)
         throws IOException, XmlPullParserException
     {
         P.assertStart(p, "entry");
 
         int type = p.next();
 
-        FeedInfo fi = task.getFeedInfo();
+        FeedInfo fi = fpl.getFeedInfo();
 
         FeedInfo.EntryInfo ei = new FeedInfo.EntryInfo(fi);
 
@@ -166,7 +164,7 @@ public class AtomFeedParser
                 if (p.getName().equals("entry")) {
                     fi.addEntry(ei);
                     p.next();
-                    task.publishProgress1(ei);
+                    fpl.publishProgress1(ei);
                     return;
                 }
                 else {
