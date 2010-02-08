@@ -12,17 +12,17 @@
 
   </entry>
   <entry>
-    <title>Trook Documentation</title>
+    <title>Documentation</title>
     <link type="text/html"
           href="http://code.google.com/p/nookapps/wiki/TrookDocumentation"/>
     <id>http://code.google.com/p/nookapps/wiki/TrookDocumentation</id>
     <content type="text">Online documentation/FAQ about Trook</content>
   </entry>
   <entry>
-    <title>Trook Project Updates</title>
+    <title>Forum</title>
     <link type="application/atom+xml"
-          href="http://code.google.com/feeds/p/nookapps/updates/basic"/>
-    <id>http://code.google.com/feeds/p/nookapps/updates/basic</id>
-    <content type="text">Online feed of updates to the Trook project</content>
+          href="http://groups.google.com/group/trookhub/feed/atom_v1_0_msgs.xml"/>
+    <id>http://groups.google.com/group/trookhub/feed/atom_v1_0_msgs.xml</id>
+    <content type="text">Latest posts on the Trook forum</content>
   </entry>
 </feed>
