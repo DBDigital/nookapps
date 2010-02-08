@@ -4,11 +4,12 @@
   <title>Trook news, documentation</title>
   <author><name>Trook</name></author>
   <entry>
-    <title>Trook rev:38</title>
+    <title>Trook rev:45</title>
     <link type="application/vnd.android.package-archive"
           href="http://nookapps.googlecode.com/files/Trook-debug.apk"/>
     <id>http://nookapps.googlecode.com/files/Trook-debug.apk</id>
-    <content type="text">Revision 38 is primarily a quick code-cleanup revision, and a slightly more consistent way to save things locally. Books and music now go into a Downloads folder, so you can quickly separate it from your other content. Mini easter egg -- if you're having trouble getting wifi to stay up while you install any apps, you can now just copy an apk file via usb to some folder, and use Trook to install it.</content>
+    <content type="text">Revision 45 is another bug-fix revision, and reorganizes the root menu a little bit. All the book folders are now grouped into a submenu--let me know if you feel strongly about doing this. The easter egg for this revision is Wikipedia search. Get into the Wikipedia menu, and don't miss the search icon on the top.</content>
+
   </entry>
   <entry>
     <title>Trook Documentation</title>
