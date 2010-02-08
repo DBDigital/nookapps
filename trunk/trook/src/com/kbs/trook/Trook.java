@@ -65,6 +65,7 @@ public class Trook extends Activity
         m_webview = (WebView) findViewById(R.id.webview);
         m_webview.setClickable(false);
         m_webview.getSettings().setJavaScriptEnabled(true);
+        m_webview.getSettings().setUserAgent(1);
         m_webview.getSettings().setTextSize(WebSettings.TextSize.LARGER);
         m_webview.setWebViewClient(new WVClient());
         m_webview.setOnKeyListener(new WVPager());
@@ -875,7 +876,8 @@ public class Trook extends Activity
             else {
                 type_suffix = ".epub"; // oh well.
             }
-            author = lastNameify(author); // ah, what an ugly function name
+            // ah, what an ugly function name
+            author = fileSafe(lastNameify(author));
         }
         else if (isAnAudio(type)) {
             root =
@@ -905,6 +907,9 @@ public class Trook extends Activity
             // where this came from, I fall back to
             // the base URI.
             title = sanitizeUniqueName(baseuri, href);
+        }
+        else {
+            title = fileSafe(title);
         }
 
         if (suffix == null) {
@@ -1154,12 +1159,14 @@ public class Trook extends Activity
         return list.size() > 0;
     }
 
+    private final static String fileSafe(String s)
+    { return s.replaceAll("[\\/:]", " - "); }
+
     private final static String sanitizeTitle(CharSequence title, String uri)
     {
         // Try to use the title if possible.
         if ((title != null) && (title.length() > 0)) {
-            String t = title.toString();
-            return t.replaceAll("[\\/:]", " - ");
+            return fileSafe(title.toString());
         }
         // Otherwise, just the hostname
         Uri auri = Uri.parse(uri);

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>asset:wikipedia.xml</id>
+  <link rel="search" title="Search Wikipedia" type="application/atom+xml" href="http://en.wikipedia.org/w/api.php?action=query&amp;list=search&amp;srsearch={searchTerms}&amp;format=xml"/>
+  <title>Wikipedia</title>
+  <updated>2009-12-26T17:58:39Z</updated>
+  <author><name>Trook</name></author>
+  <entry>
+    <title>Featured articles</title>
+    <author><name>Instapaper</name></author>
+    <link type="application/atom+xml" href="http://www.instapaper.com/special/wikipedia_featured_rss"/>
+    <id>http://www.instapaper.com/special/wikipedia_featured_rss</id>
+    <content type="text">Recently featured Wikipedia articles -- feed provided courtesy Instapaper.</content>
+  </entry>
+  <entry>
+    <title>On this day</title>
+    <author><name>Simon Kågedal</name></author>
+    <link type="application/atom+xml" href="http://toolserver.org/~skagedal/feeds/sa.xml"/>
+    <id>http://toolserver.org/~skagedal/feeds/sa.xml</id>
+    <content type="text">Selected anniversaries -- feed provided courtesy Simon Kågedal.</content>
+  </entry>
+</feed>

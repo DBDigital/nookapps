@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
 
 public class FeedInfo
 {
@@ -115,7 +116,13 @@ public class FeedInfo
     public final static class SearchInfo
     {
         public SearchInfo(FeedInfo p, String template)
-        { m_fi = p; m_template = template; }
+        {
+            m_fi = p;
+            String t = template;
+            try { t = URLDecoder.decode(template, "utf-8"); }
+            catch (IOException ign) { }
+            m_template = t;
+        }
 
         public FeedInfo getFeedInfo()
         { return m_fi; }
