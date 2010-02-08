@@ -90,6 +90,16 @@ public class FeedManager
             new AsyncFeedParserTask(uri, m_trook, m_nytimesfixer)
                 .execute(r);
         }
+        else if ("http://www.instapaper.com/special/wikipedia_featured_rss"
+                 .equals(uri)) {
+            new AsyncFeedParserTask(uri, m_trook, m_wikifixer)
+                .execute(r);
+        }
+        else if ((uri != null) &&
+                 (uri.startsWith("http://toolserver.org/"))) {
+            new AsyncFeedParserTask(uri, m_trook, m_wikifixer)
+                .execute(r);
+        }
         else {
             new AsyncFeedParserTask(uri, m_trook)
                 .execute(r);
@@ -133,6 +143,27 @@ public class FeedManager
                 }
             }
         };
+
+    private final ILinkFixer m_wikifixer =
+        new ILinkFixer() {
+            public String fix(String uri)
+            {
+                if ((uri != null) &&
+                    (uri.startsWith("http://en.wikipedia.org/"))) {
+                    if (uri.indexOf('?') > 0) {
+                        // don't mess with these
+                        return uri;
+                    }
+                    else {
+                        return uri+"?printable=yes";
+                    }
+                }
+                else {
+                    return uri;
+                }
+            }
+        };
+
 
     private final CacheManager m_cachemgr;
     private final Trook m_trook;

@@ -78,7 +78,7 @@ public class RssFeedParser
             }
             else if (curtag.equals("link")) {
                 FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
-                li.setAttribute("href", P.collectText(p));
+                li.setAttribute("href", fpl.fix(P.collectText(p)));
                 ei.addLink(li);
             }
             else if (curtag.equals("origLink")) { // pheedo special

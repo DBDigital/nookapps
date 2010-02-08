@@ -68,6 +68,30 @@ public class P
         return false;
     }
 
+    public final static boolean skipToStartWithin
+        (XmlPullParser p, String tag, String end)
+        throws IOException, XmlPullParserException
+    {
+        int type = p.getEventType();
+        while (type != XmlPullParser.END_DOCUMENT) {
+            if (type == XmlPullParser.START_TAG) {
+                if ((tag == null) ||
+                    (p.getName().equals(tag))) {
+                    return true;
+                }
+            }
+            else if (type == XmlPullParser.END_TAG) {
+                if ((end != null) &&
+                    (p.getName().equals(end))) {
+                    p.next();
+                    return false;
+                }
+            }
+            type = p.next();
+        }
+        return false;
+    }
+
     public final static boolean skipThisBlock(XmlPullParser p)
         throws XmlPullParserException, IOException
     {

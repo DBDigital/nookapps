@@ -23,6 +23,12 @@
     <content type="text">News - Top Stories</content>
   </entry>
   <entry>
+    <title>Wikipedia</title>
+    <link type="application/atom+xml" href="asset:wikipedia.xml"/>
+    <id>asset:wikipedia.xml</id>
+    <content type="text">Search Wikipedia and read featured articles.</content>
+  </entry>
+  <entry>
     <title>Nookdevs</title>
     <link type="application/atom+xml" href="http://nookdevs.googlecode.com/svn/trunk/updatesfeed.xml"/>
     <id>http://nookdevs.googlecode.com/svn/trunk/updatesfeed.xml</id>
@@ -33,9 +39,8 @@
     <title>My Packages</title>
     <link type="trook/directory" href="file:///system/media/sdcard/my%20packages"/>
     <id>file:///system/media/sdcard/my%20packages</id>
-    <content type="text">Browse my downloaded Android packages.</content>
+    <content type="text">Browse downloaded Android packages.</content>
   </entry>
-
   <entry>
     <title>My Feeds</title>
     <link type="trook/directory" href="file:///system/media/sdcard/my%20feeds"/>
@@ -43,15 +48,9 @@
     <content type="text">Browse my saved feeds.</content>
   </entry>
   <entry>
-    <title>B&amp;N Books</title>
-    <link type="trook/directory" href="file:///system/media/sdcard/my%20B%26N%20downloads"/>
-    <id>file:///system/media/sdcard/my%20B%26N%20downloads</id>
-    <content type="text">Browse Barnes&amp;Noble books</content>
-  </entry>
-  <entry>
     <title>My Books</title>
-    <link type="trook/directory" href="file:///system/media/sdcard/my%20documents"/>
-    <id>file:///system/media/sdcard/my%20documents</id>
-    <content type="text">Browse my books.</content>
+    <link type="application/atom+xml" href="asset:mybooks.xml"/>
+    <id>asset:mybooks.xml</id>
+    <content type="text">Browse books stored on the Nook</content>
   </entry>
 </feed>

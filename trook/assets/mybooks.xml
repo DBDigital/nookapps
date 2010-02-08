@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>asset:mynook</id>
+  <title>My Books</title>
+  <updated>2009-12-26T17:58:39Z</updated>
+  <author><name>Trook</name></author>
+  <entry>
+    <title>My Documents</title>
+    <link type="trook/directory" href="file:///system/media/sdcard/my%20documents"/>
+    <id>file:///system/media/sdcard/my%20documents</id>
+    <content type="text">Browse my document folders</content>
+  </entry>
+  <entry>
+    <title>B&amp;N Books</title>
+    <link type="trook/directory" href="file:///system/media/sdcard/my%20B%26N%20downloads"/>
+    <id>file:///system/media/sdcard/my%20B%26N%20downloads</id>
+    <content type="text">Browse Barnes&amp;Noble books</content>
+  </entry>
+  <entry>
+    <title>SD Card</title>
+    <link type="trook/directory" href="file:///sdcard"/>
+    <id>file:///sdcard</id>
+    <content type="text">Browse the external SD Card</content>
+  </entry>
+</feed>

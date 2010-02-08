@@ -104,7 +104,7 @@ public class AsyncFeedParserTask
     public final String fix(String fix)
     {
         if (m_fixer != null) {
-            return m_fixer.fix(fix);
+            return  m_fixer.fix(fix);
         }
         else {
             return fix;
@@ -134,6 +134,12 @@ public class AsyncFeedParserTask
 
     public String getStringResource(int v)
     { return m_trook.getResources().getString(v); }
+
+    public void log(String cl, String m)
+    { Log.d(cl, m); }
+
+    public void log(String cl, String m, Throwable t)
+    { Log.d(cl, m, t); }
 
     public void setResolvePath(String s)
     { m_resolvepath = s; }
@@ -165,10 +171,11 @@ public class AsyncFeedParserTask
     private final static IFeedParser[] s_parsers;
     static
     {
-        s_parsers = new IFeedParser[2];
+        s_parsers = new IFeedParser[3];
         int idx = 0;
 
         s_parsers[idx++] = new AtomFeedParser();
         s_parsers[idx++] = new RssFeedParser();
+        s_parsers[idx++] = new WikiSearchParser();
     }
 }

@@ -17,6 +17,7 @@ import org.xmlpull.mxp1.MXParser;
 import com.kbs.trook.P;
 import com.kbs.trook.RssFeedParser;
 import com.kbs.trook.AtomFeedParser;
+import com.kbs.trook.WikiSearchParser;
 import com.kbs.trook.IFeedParserListener;
 import com.kbs.trook.IFeedParser;
 import com.kbs.trook.FeedInfo;
@@ -55,6 +56,15 @@ public class ParserTest extends TestCase
         walkRoot(r, parser);
     }
 
+    public void testWiki()
+        throws IOException, XmlPullParserException
+    {
+        File r = new File(WIKI_DIR);
+        WikiSearchParser parser =
+            new WikiSearchParser();
+        walkRoot(r, parser);
+    }
+
     public void testAll()
         throws IOException, XmlPullParserException
     {
@@ -82,6 +92,15 @@ public class ParserTest extends TestCase
 
     public String fix(String s)
     { return s; }
+
+    public void log(String cl, String m)
+    { System.err.println(cl+":"+m); }
+
+    public void log(String cl, String m, Throwable t)
+    {
+        log(cl, m);
+        t.printStackTrace();
+    }
 
     private final void walkRoot(File root, IFeedParser parser)
         throws IOException, XmlPullParserException
@@ -151,6 +170,7 @@ public class ParserTest extends TestCase
         assertTrue(rootname+":"+f.toString(), parser.canParse(rootname));
 
         m_fi = new FeedInfo(f.toString());
+        m_rs = f.toString();
         parser.parse(p, this);
         assertTrue(f.toString(), true);
     }
@@ -193,6 +213,7 @@ public class ParserTest extends TestCase
     private final static String RDF_DIR = "tests/ufp_tests/tests/wellformed/rdf";
     private final static String ATOM_DIR = "tests/ufp_tests/tests/wellformed/atom";
     private final static String WFDIR = "tests/ufp_tests/tests/wellformed";
+    private final static String WIKI_DIR = "tests/kbs_tests/wellformed/wikisearch";
 
     private final static IFeedParser[] s_parsers;
     static

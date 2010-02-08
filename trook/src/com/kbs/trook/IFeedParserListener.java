@@ -25,4 +25,8 @@ public interface IFeedParserListener
     public void publishProgress1(FeedInfo.EntryInfo... ei);
 
     public String fix(String s);
+
+    public void log(String cl, String msg);
+
+    public void log(String cl, String msg, Throwable t);
 }
