@@ -4,24 +4,25 @@
 <p>You'll need to allow your nook to install 3rd party applications
 to install any of these apps here.</p>
 
-<p>YMMV, but what I've done is to get an <tt>adb</tt> shell on
-the nook -- and if you're reading this, you probably have figured
-out how to do it already! Then, I run (lines broken for readability)</p>
+<p>What I've done is to update the <tt>settings.db</tt> using
+<tt>sqlite3</tt>. Here are my commands (in bold) lines broken
+for readability -- please run all commands on a single line.</p>
 
 <pre>
-# cd /data/data/
-        com.android.providers.settings/databases
-# sqlite3 settings.db
+$ <b>adb shell</b>   &lt;-- from my PC
+# <b>cd /data/data/
+        com.android.providers.settings/databases</b>
+# <b>sqlite3 settings.db</b>
+SQLite version 3.5.9
+Enter ".help" for instructions
+sqlite&gt; <b>update secure set value=1
+        where name='install_non_market_apps';</b>
+sqlite&gt; <b>.q</b>
+# <b>Ctrl-D</b>
+$ 
 </pre>
-<p>Here, you'll find a table called <tt>secure</tt>, and you need
-to update this table and set <tt>install_non_market_apps</tt> to
-<tt>1</tt>. Something like</p>
-<pre>
-update secure set value=1
-  where name='install_non_market_apps';
-</pre>
-
-<p>ought to do it.</p>
+Reboot your Nook, and it should now allow 3rd-party installs to occur
+from Trook.
 </body>
 </html>
 
