@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+   xmlns:android="http://schemas.android.com/apk/res/android"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent"
+   android:orientation="vertical"
+   >
+  <!-- this Frame is used merely to block out the eink-display -->
+  <WebView
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      android:layout_width="fill_parent"
+      android:layout_height="760px"
+      android:background="#ffffff"
+      android:id="@+id/einkview"/>
+  <LinearLayout
+      android:orientation="horizontal"
+      android:layout_width="480px"
+      android:layout_height="144px">
+
+    <Button
+        android:id="@+id/back"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:background="@drawable/back_button"
+        />
+    <WebView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/touchview"/>
+  </LinearLayout>
+</LinearLayout>
