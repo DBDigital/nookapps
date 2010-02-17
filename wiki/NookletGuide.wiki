@@ -33,7 +33,7 @@ That's it!
 
 Unmount the nook, and run the nooklet application. You should see a new item called `Easy` appear in it. Click on it -- you should see a blank screen.
 
-A nooklet is structured as a folder containing an xml file named `nooklet.xml`. If it contains an html file called `touch.html`, it will appear on the touchscreen area. If it has an html file called `eink.html`, it will appear on the eink display.
+A nooklet is structured as a folder containing an xml file named `nooklet.xml`. If the folder contains an html file called `touch.html`, it will appear on the touchscreen area. If it contains an html file called `eink.html`, it will appear on the eink display, and that's all there is to it.
 
 Create a file called `touch.html` under the `Easy` folder which looks like this.
 {{{
