@@ -46,7 +46,7 @@ Create a file called `touch.html` under the `Easy` folder which looks like this.
 
 and create a file called `eink.html` under the `Easy` folder which contains
 {{{
-<html><head><title>touch</title></head>
+<html><head><title>eink</title></head>
 <body>
 <h1>Hello, world!</h1>
 </body>
@@ -62,7 +62,7 @@ The nooklet container will provide hooks for you to interact with the device via
 
 Update your `eink.html` file to provide a way to change the message.
 {{{
-<html><head><title>touch</title>
+<html><head><title>eink</title>
 <script type="text/javascript">
 function message(m) {
   document.getElementById("msg").innerHTML = m;
