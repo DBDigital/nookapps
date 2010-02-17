@@ -36,6 +36,13 @@ You can use the `WebView` instances to call javascript functions across the html
 `nook.log(String tag, String msg)` -- drop something into the android log file.
 
 
-=Lifecycle events=
+=Container events=
 
 If an html page contains a javascript object named `nooklet` with a function called `nooklet.save`, that function will be called whenever the nooklet is terminated. One use for this is to save any data using `nook.writeData(...)` when the nooklet terminates.
+
+If there's a function in the `nooklet` object called `nooklet.onKey(keycode)`, it will be called whenever any of the left/right buttons are clicked on the Nook. The raw keycodes are passed to the function, and for reference, they are
+||name||keycode||
+||RIGHT_UP||98||
+||RIGHT_DOWN||97||
+||LEFT_UP||96||
+||LEFT_DOWN||95||
