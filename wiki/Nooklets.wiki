@@ -4,6 +4,8 @@
 
 Nooklets are this crazy idea I had that it just might be feasible to develop reasonable Nook applications entirely in HTML and Javascript. I've cooked up a small system to do just this,  and a sample Sudoku application to go with it.
 
+<wiki:video url="http://www.youtube.com/watch?v=6Mqu5a243ik"/>
+
 It's all still fairly new, so please have fun with it and don't expect too many great things :-)
 
 = Installing =
