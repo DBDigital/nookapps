@@ -9,7 +9,7 @@ It's all still fairly new, so please have fun with it and don't expect too many 
 = Installing =
 Please download [http://nookapps.googlecode.com/files/nooklets.zip the sample nooklets] and unzip it to the root of your internal SD card from your PC. When it's over, you should find a folder called `nooklets/` at the root of your internal SD card.
 
-Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.apk the Nooklet container] as usual, and add it to your launcher. If it all goes well, you should find three sample applications.
+Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.apk the Nooklet container apk] and add it to your launcher. If it all goes well, you should find three sample applications.
 
 = Writing nooklets =
 
