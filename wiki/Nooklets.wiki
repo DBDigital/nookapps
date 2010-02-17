@@ -14,6 +14,6 @@ Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.a
 
 = Writing nooklets =
 
-Nooklets are just a couple of HTML files -- one for the eink, and one for the touch area. Take a look at the `Hello` application to see how easy it is to create an app. The biggest issue is that the webkit on the Nook doesn't appear to correctly handle mouse down events, so 'active' html elements don't provide feedback they are being pressed. That said, the NookletSpecification might be useful, in lieu of any other documentation at the moment (sorry!)
+Nooklets are just a couple of HTML files -- one for the eink, and one for the touch area. Take a look at the `Hello` application to see how easy it is to create an app. The biggest issue is that the webkit on the Nook doesn't appear to correctly handle mouse down events, so 'active' html elements don't provide feedback they are being pressed. That said, please start with the NookletGuide, and proceed to the NookletSpecification for the gory details.
 
-Have fun!
+Enjoy!
