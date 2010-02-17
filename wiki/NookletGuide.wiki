@@ -20,7 +20,7 @@ Create a new folder called `Easy` on your PC. Within this folder, create a new f
 </nooklet>
 }}}
 
-Mount your nook.
+All this does is to create a blank nooklet that's visible from the nooklet container. To test it out, mount your nook.
 
 The nooklet container currently expects to find a folder called `nooklets/` at the root of your internal SD card. If you've unzipped the sample nooklets, this folder should already be present. If not, just create a folder called `nooklets/` at the root of your internal SD card, and copy the `Easy/` folder underneath it. When you are done, you should have a folder structure like this:
 {{{
