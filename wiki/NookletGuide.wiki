@@ -93,4 +93,4 @@ function change() {
 Update these files on the Nook, and restart the Easy application.
 
 = Going forward =
-Please take a look at the sample applications, the Noodoku code should give you a sense for what is feasible. A lot of things are still lacking, for example a standard way to style your widgets so you can avoid the tedium of managing the screens. Please take a look at the Noodoku application (TODO: bundle this into a starter-nooklet.zip file.)
+Please take a look at the sample applications, the Noodoku code should give you a sense for what is feasible. A lot of things are still lacking, for example a standard way to style your widgets so you can avoid the tedium of managing the screens. Please take a look at the Noodoku application (TODO: bundle this into a starter-nooklet.zip file.) You should look at the NookletSpecification for details about how to work with the container.
