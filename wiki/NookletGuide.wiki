@@ -54,7 +54,7 @@ and create a file called `eink.html` under the `Easy` folder which contains
 }}}
 and copy these two files under the `Easy` folder on the Nook.
 
-Run the `Easy` application, and you should now see a button on the touchscreen, and a message on the eink display.
+Restart the `Easy` nooklet, and you should now see a button on the touchscreen, and a message on the eink display.
 
 *Note:* there's a bug in the webkit implementation on the nook -- it does not correctly handle mousedown events. The net result is that your button (or any active element actually) will appear to be unresponsive. I'm sorry this is the situation; but that's the way it is.
 
@@ -62,11 +62,13 @@ The nooklet container will provide hooks for you to interact with the device via
 
 Update your `eink.html` file to provide a way to change the message.
 {{{
-<html><head><title>touch</title></head>
+<html><head><title>touch</title>
 <script type="text/javascript">
 function message(m) {
-  document.getElementById("msg").innerHTML(m);
+  document.getElementById("msg").innerHTML = m;
 }
+</script>
+</head>
 <body>
 <h1 id="msg">Hello, world!</h1>
 </body>
@@ -75,11 +77,13 @@ function message(m) {
 
 and update your `touch.html` file to call the method in the `eink.html` file. The `nook` object provides access to the [http://developer.android.com/reference/android/webkit/WebView.html WebView] control, and you can use the `loadUrl` method to call javascript methods within that WebView.
 {{{
-<html><head><title>touch</title></head>
+<html><head><title>touch</title>
 <script type="text/javascript">
 function change() {
   nook.getEink().loadUrl("javascript:message('Goodbye!')");
 }
+</script>
+</head>
 <body>
 <button onClick="change()">Nooklet</button>
 </body>
