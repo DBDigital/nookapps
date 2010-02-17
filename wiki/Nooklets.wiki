@@ -2,11 +2,10 @@
 
 = About Nooklets =
 
-Nooklets are this crazy idea I had that it just might be feasible to develop reasonable Nook applications entirely in HTML and Javascript. I've cooked up a small system to do just this,  and a sample Sudoku application to go with it.
+Nooklets are this crazy idea I had that it just might be feasible to develop reasonable Nook applications entirely in HTML and Javascript. I've cooked up a small system to do just this,  and a sample Sudoku application to go with it. Within the limitations of the webkit version running on the Nook, it's not too shabby, here's a video of how it looks. 
+It's all still fairly new, so please have fun with it and let me know what you think.
 
 <wiki:video url="http://www.youtube.com/watch?v=6Mqu5a243ik"/>
-
-It's all still fairly new, so please have fun with it and don't expect too many great things :-)
 
 = Installing =
 Please download [http://nookapps.googlecode.com/files/nooklets.zip the sample nooklets] and unzip it to the root of your internal SD card from your PC. When it's over, you should find a folder called `nooklets/` at the root of your internal SD card.
@@ -15,6 +14,6 @@ Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.a
 
 = Writing nooklets =
 
-Nooklets are just a couple of HTML files -- one for the eink, and one for the touch area. Take a look at the `Hello` application to see how easy it is to create an app. You might find the NookletSpecification helpful, in lieu of any other documentation at the moment (sorry!)
+Nooklets are just a couple of HTML files -- one for the eink, and one for the touch area. Take a look at the `Hello` application to see how easy it is to create an app. The biggest issue is that the webkit on the Nook doesn't appear to correctly handle mouse down events, so 'active' html elements don't provide feedback they are being pressed. That said, the NookletSpecification might be useful, in lieu of any other documentation at the moment (sorry!)
 
 Have fun!
