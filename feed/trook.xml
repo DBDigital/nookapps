@@ -4,11 +4,11 @@
   <title>Trook news, documentation</title>
   <author><name>Trook</name></author>
   <entry>
-    <title>Trook rev45</title>
+    <title>Trook rev53</title>
     <link type="application/vnd.android.package-archive"
           href="http://nookapps.googlecode.com/files/Trook-debug.apk"/>
     <id>http://nookapps.googlecode.com/files/Trook-debug.apk</id>
-    <content type="text">Revision 45 is another bug-fix revision, and reorganizes the root menu a little bit. All the book folders are now grouped into a submenu--let me know if you feel strongly about doing this. The easter egg for this revision is Wikipedia search. Get into the Wikipedia menu, and don't miss the search icon on the top.</content>
+    <content type="text">Revision 53 is a small bug-fix revision, and changes the settings from a menu to a "flip". Oh, and yes. The easter egg for this release is an option to use 3G, for those of you who've swapped out your sim cards.</content>
 
   </entry>
   <entry>
