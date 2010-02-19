@@ -11,4 +11,6 @@
     <string name="directory_text">Open</string>
     <string name="readbook_text">Read</string>
     <string name="next_title">More...</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_done_text">Back</string>
 </resources>

@@ -59,7 +59,7 @@ public class AsyncLoadUriTask
         }
 
         // Oh well -- have to work for it.
-        pp("starting wifi...");
+        pp("starting network...");
         Trook.WifiStatus status = m_trook.acquireAndWaitForWifi();
         if (!status.isReady()) {
             error("Feed did not load\n"+m_uri+"\n"+status.getMessage());

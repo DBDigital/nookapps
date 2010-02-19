@@ -7,9 +7,6 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.view.KeyEvent;
 import android.widget.TextView;
@@ -23,7 +20,7 @@ import android.app.Dialog;
 import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.CheckBox;
 import android.util.Log;
 import android.text.Html;
 import android.net.Uri;
@@ -83,6 +80,53 @@ public class Trook extends Activity
         m_powerdelay = NookUtils.getScreenSaverDelay(this);
 
         m_dialog = new OneLineDialog(this, m_webview);
+
+        // Setup the settings panel
+        m_settingsview = (ViewGroup)
+            getLayoutInflater().inflate
+            (R.layout.settingsview, m_va, false);
+        ViewGroup sentries = (ViewGroup)
+            m_settingsview.findViewById(R.id.settings_entries);
+        addButtonSetting
+            (sentries, "Open...", "",
+             new View.OnClickListener() {
+                 public void onClick(View v)
+                 { doFeedDialog(); }
+             });
+        addButtonSetting
+            (sentries, "Bookmark", "Bookmarks saved under \"My Feeds\"",
+             new View.OnClickListener() {
+                 public void onClick(View v)
+                 { bookmarkFeed(); }
+             });
+        addButtonSetting
+            (sentries, "Reset", "Restore default root feed",
+             new View.OnClickListener() {
+                 public void onClick(View v)
+                 { setFeedRootPrefs(null); maybeRemoveRootFeed(); }
+             });
+        m_3g_checkbox = addCheckboxSetting
+            (sentries, is3GEnabled(), "Use 3G (with a new sim)",
+             new View.OnClickListener() {
+                 public void onClick(View v)
+                 { set3GEnabled(m_3g_checkbox.isChecked()); }
+             });
+        addButtonSetting
+            (sentries, "Exit", "Stop Trook",
+             new View.OnClickListener() {
+                 public void onClick(View v)
+                 { finish(); }
+             });
+
+        // make sure I'm able to get back!
+        Button sd = (Button)
+            m_settingsview.findViewById(R.id.settings_done);
+        sd.setOnClickListener
+            (new View.OnClickListener() {
+                    public void onClick(View v) {
+                        unflipSettingsView();
+                    }
+                });
         pushViewFromUri(getFeedRoot());
     }
 
@@ -191,6 +235,16 @@ public class Trook extends Activity
         editor.commit();
     }
 
+    final void set3GEnabled(boolean v)
+    {
+        SharedPreferences.Editor editor = m_preferences.edit();
+        editor.putBoolean(TROOK_3G_ENABLED, v);
+        editor.commit();
+    }
+
+    final boolean is3GEnabled()
+    { return getPrefsBoolean(TROOK_3G_ENABLED, false); }
+
     // Only to be called from the UI thread
     final void pushViewFromReader(String uri, Reader r)
     {
@@ -206,11 +260,6 @@ public class Trook extends Activity
     // Only to be called from UI thread
     final void reloadViewToUri(String uri)
     {
-        // special case for our root
-        if (DEFAULT_FEED_URI.equals(uri)) {
-            return;
-        }
-
         // First remove this view from our cache
         m_feedviewcache.removeFeedView(uri);
         // Next remove it from any stored feed
@@ -299,32 +348,41 @@ public class Trook extends Activity
     //
     final WifiStatus acquireAndWaitForWifi()
     {
+        boolean use3g = is3GEnabled();
         // First a sanity check.
-        if (!ConnectUtils.wifiEnabled(this)) {
-            return new WifiStatus
-                (false, "Please enable wifi\nfrom the Settings");
+        if (!ConnectUtils.wifiEnabled(this, use3g)) {
+            if (use3g) {
+                return new WifiStatus
+                    (false, "Please exit airplane_mode\nfrom the Settings");
+            }
+            else {
+                return new WifiStatus
+                    (false, "Please enable wifi\nfrom the Settings");
+            }
         }
 
         synchronized (m_wifisync) {
             // Step 1: create both locks as needed
             if (m_wifireflock == null) {
                 m_wifireflock =
-                    ConnectUtils.newWifiLock(this, TAG+"-refc-"+hashCode());
+                    ConnectUtils.newWifiLock
+                    (this, TAG+"-refc-"+hashCode(), use3g);
                 if (m_wifireflock == null) {
                     return new WifiStatus
-                        (false, "Unable to create wifilock, sorry");
+                        (false, "Unable to create network lock, sorry");
                 }
                 if (!ConnectUtils.setReferenceCounted(m_wifireflock, true)) {
                     return new WifiStatus
-                        (false, "Unable to set refcount on wifilock");
+                        (false, "Unable to set refcount on network lock");
                 }
             }
             if (m_wifitimelock == null) {
                 m_wifitimelock =
-                    ConnectUtils.newWifiLock(this, TAG+"-timed-"+hashCode());
+                    ConnectUtils.newWifiLock
+                    (this, TAG+"-timed-"+hashCode(), use3g);
                 if (m_wifitimelock == null) {
                     return new WifiStatus
-                        (false, "Unable to create wifitimelock, sorry");
+                        (false, "Unable to create networktimelock, sorry");
                 }
                 if (!ConnectUtils.setReferenceCounted
                     (m_wifitimelock, false)) {
@@ -336,7 +394,7 @@ public class Trook extends Activity
             // Step 2: bump up refcount on the refcounted lock
             if (!ConnectUtils.acquire(m_wifireflock)) {
                 return new WifiStatus
-                    (false, "Unable to acquire reference on wifi lock");
+                    (false, "Unable to acquire reference on network lock");
             }
 
             // Step 3: wait for network to turn on, and be careful
@@ -347,7 +405,8 @@ public class Trook extends Activity
                     ConnectUtils.waitForService
                     (this,
                      getPrefsLong
-                     (PREFS_WIFI_TIMEOUT, DEFAULT_WIFI_TIMEOUT));
+                     (PREFS_WIFI_TIMEOUT, DEFAULT_WIFI_TIMEOUT),
+                     use3g);
                 return new WifiStatus
                     (success, "Network failed to turn on");
             }
@@ -365,7 +424,7 @@ public class Trook extends Activity
         // Here we expect a wifirefc lock and a timelock, otherwise
         // we have a consistency error.
 
-        Log.d(TAG, "releasing wifi, hopefully get a timelock as well");
+        Log.d(TAG, "releasing network, hopefully get a timelock as well");
         synchronized (m_wifisync) {
             // First, acquire a timeout lock just so we give ourselves
             // some time before someone else needs the network
@@ -447,42 +506,46 @@ public class Trook extends Activity
         }
     }        
 
-    @Override
-    public void onCreateContextMenu
-        (ContextMenu menu, View v, ContextMenu.ContextMenuInfo mi)
+    private Button addButtonSetting
+        (ViewGroup vg,
+         String buttonTitle,
+         String description,
+         View.OnClickListener cb)
     {
-        super.onCreateContextMenu(menu, v, mi);
-        menu.setHeaderTitle(Version.VERSION+" settings");
-        menu.add(Menu.NONE, CANCEL_ID, Menu.NONE, "Cancel");
-        menu.add(Menu.NONE, BOOKMARK_ID, Menu.NONE,
-                 "Bookmark to my feeds");
-        menu.add(Menu.NONE, RESET_ID, Menu.NONE,
-                 "Restore default feed");
-        menu.add(Menu.NONE, CLOSE_ID, Menu.NONE,
-                 "Stop application");
+        ViewGroup root = (ViewGroup)
+            getLayoutInflater().inflate
+            (R.layout.buttonsetting, vg, false);
+        Button b = (Button)
+            root.findViewById(R.id.button);
+        TextView desc = (TextView)
+            root.findViewById(R.id.description);
+        b.setText(buttonTitle);
+        b.setOnClickListener(cb);
+        desc.setText(description);
+        vg.addView(root);
+        return b;
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item)
+    private CheckBox addCheckboxSetting
+        (ViewGroup vg,
+         boolean state,
+         String description,
+         View.OnClickListener cb)
     {
-        switch (item.getItemId()) {
-        case LOAD_ID:
-            doFeedDialog();
-            return super.onContextItemSelected(item);
-        case RESET_ID:
-            setFeedRootPrefs(null);
-            maybeRemoveRootFeed();
-            return super.onContextItemSelected(item);
-        case CLOSE_ID:
-            finish();
-            return true;
-        case BOOKMARK_ID:
-            bookmarkFeed();
-            return super.onContextItemSelected(item);
-        default:
-            return super.onContextItemSelected(item);
-        }
+        ViewGroup root = (ViewGroup)
+            getLayoutInflater().inflate
+            (R.layout.checkboxsetting, vg, false);
+        CheckBox b = (CheckBox)
+            root.findViewById(R.id.checkbox);
+        TextView desc = (TextView)
+            root.findViewById(R.id.description);
+        b.setChecked(state);
+        b.setOnClickListener(cb);
+        desc.setText(description);
+        vg.addView(root);
+        return b;
     }
+
 
     private final FeedViewCache.FeedView
         makeFeedView(String uri)
@@ -500,7 +563,6 @@ public class Trook extends Activity
         ImageButton stngs = (ImageButton)
             root.findViewById(R.id.settings);
         stngs.setOnClickListener(m_settings_clicker);
-        registerForContextMenu(stngs);
 
         Button prev = (Button)
             root.findViewById(R.id.prev);
@@ -554,27 +616,30 @@ public class Trook extends Activity
             cached = makeFeedView(uri);
         }
 
-        // Drop the feedview into the non-displayed view
-        if (cached.m_root.getParent() != null) {
-            if (cached.m_root.getParent() instanceof ViewGroup) {
-                ((ViewGroup) cached.m_root.getParent()).
-                    removeView(cached.m_root);
+        setOtherFeedView(cached.m_root);
+        m_curfeedview = cached;
+        return iscached;
+    }
+
+    private void setOtherFeedView(View v)
+    {
+        if (v.getParent() != null) {
+            if (v.getParent() instanceof ViewGroup) {
+                ((ViewGroup) v.getParent()).
+                    removeView(v);
             }
         }
+
         if (m_usinga) {
             m_frameb.removeAllViews();
-            m_frameb.addView(cached.m_root);
-            // Log.d(TAG, "attaching new view to frameA");
+            m_frameb.addView(v);
             m_usinga = false;
         }
         else {
             m_framea.removeAllViews();
-            m_framea.addView(cached.m_root);
-            // Log.d(TAG, "attaching new view to frameB");
+            m_framea.addView(v);
             m_usinga = true;
         }
-        m_curfeedview = cached;
-        return iscached;
     }
 
     final boolean pushFeedView(String uri)
@@ -594,9 +659,35 @@ public class Trook extends Activity
         return ret;
     }
 
+    // Flip around the current panel, replacing it with
+    // the settings view
+    final void flipToSettingsView()
+    {
+        setOtherFeedView(m_settingsview);
+
+        // but -- create a flip transition rather
+        // than a slide transition.
+        m_va.setInAnimation(this, R.anim.flip_in);
+        m_va.setOutAnimation(this, R.anim.flip_out);
+
+        m_va.showNext();
+    }
+
+    // Unflip the settings view, can assume that the correct
+    // panel is already set on the back side.
+    final void unflipSettingsView()
+    {
+        if (m_usinga) {
+            m_usinga = false;
+        }
+        else {
+            m_usinga = true;
+        }
+        m_va.showNext();
+    }
+
     final boolean popFeedView(String uri)
     {
-        Log.d(TAG, "Someone wants us to pop into "+uri);
         boolean ret = placeFeedView(uri);
         m_va.setInAnimation(this, R.anim.push_down_in);
         m_va.setOutAnimation(this, R.anim.push_down_out);
@@ -943,6 +1034,9 @@ public class Trook extends Activity
     private final long getPrefsLong(String k, long dflt)
     { return m_preferences.getLong(k, dflt); }
 
+    private final boolean getPrefsBoolean(String k, boolean dflt)
+    { return m_preferences.getBoolean(k, dflt); }
+
     private final static String sanitizeUniqueName
         (String baseuri, String href)
     {
@@ -968,7 +1062,7 @@ public class Trook extends Activity
         if (m_powerlock != null) {
             m_powerlock.acquire(m_powerdelay);
         }
-        NookUtils.setAppTitle(this, "Trook");
+        NookUtils.setAppTitle(this, Version.VERSION);
         m_dialog.closeDialog();
     }
 
@@ -1307,6 +1401,8 @@ public class Trook extends Activity
     private FrameLayout m_framea;
     private FrameLayout m_frameb;
     private OneLineDialog m_dialog;
+    private ViewGroup m_settingsview;
+    private CheckBox m_3g_checkbox;
     private boolean m_usinga = true;
     private Map<String,String> m_parents = new HashMap<String,String>();
     private Map<String,String> m_titles = new HashMap<String,String>();
@@ -1316,7 +1412,7 @@ public class Trook extends Activity
         new View.OnClickListener() {
             @Override
             public void onClick(View v)
-            { Trook.this.doFeedDialog(); }
+            { Trook.this.flipToSettingsView(); }
         };
 
     public interface UriLoadedListener
@@ -1324,8 +1420,9 @@ public class Trook extends Activity
 
     private TextView m_status;
     private Stack<FeedInfo> m_stack = new Stack<FeedInfo>();
-    private final static String TROOK_PREFS = "TrookPreferences";
+    public final static String TROOK_PREFS = "TrookPreferences";
     private final static String TROOK_ROOT_URI = "trook.rooturi";
+    public final static String TROOK_3G_ENABLED = "trook.enable3g";
     private final static String TAG = "trook";
     private PowerManager.WakeLock m_powerlock = null;
     private long m_powerdelay = NookUtils.DEFAULT_SCREENSAVER_DELAY;
