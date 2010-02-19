@@ -9,6 +9,7 @@ import android.util.Log;
 import android.net.Uri;
 import android.net.ConnectivityManager;
 import android.widget.Toast;
+import android.content.SharedPreferences;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -46,6 +47,10 @@ public class DownloadService
     {            
         Log.d(TAG, "on-handle-intent: "+intent);
 
+        SharedPreferences preferences =
+            getSharedPreferences(Trook.TROOK_PREFS, MODE_WORLD_READABLE);
+        boolean use3g = preferences.getBoolean(Trook.TROOK_3G_ENABLED, false);
+
         Uri source = intent.getData();
         Log.d(TAG, "on-handle-intent: src="+source);
 
@@ -57,13 +62,14 @@ public class DownloadService
 
         FileOutputStream out = null;
         InputStream inp = null;
-        if (!ConnectUtils.wifiEnabled(this)) {
+        if (!ConnectUtils.wifiEnabled(this, use3g)) {
             bail("sorry, please turn on wifi");
-            return;            
+            return;
         }
 
         ConnectUtils.WifiLock wakelock = null;
-        wakelock = ConnectUtils.newWifiLock(this, TAG+hashCode());
+        wakelock = ConnectUtils.newWifiLock
+            (this, TAG+hashCode(), use3g);
         if (wakelock == null) {
             bail("sorry, could not create new wifi lock");
             return;
@@ -81,7 +87,8 @@ public class DownloadService
         // protect the rest of this with a finally
         boolean ok = false;
         try {
-            if (!ConnectUtils.waitForService(this, TIMEOUT_WAIT)) {
+            if (!ConnectUtils.waitForService
+                (this, TIMEOUT_WAIT, use3g)) {
                 bail("sorry, network was not established");
                 return;
             }

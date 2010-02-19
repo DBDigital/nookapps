@@ -10,12 +10,21 @@ import java.lang.reflect.Method;
 
 public class ConnectUtils
 {
-    public final static boolean wifiEnabled(Context ctx)
+    public final static boolean wifiEnabled
+        (Context ctx, boolean use3g)
     {
-        return
-            Settings.Secure.getInt
-            (ctx.getContentResolver(),
-             "wifi_disabled", 0) == 0;
+        if (use3g) {
+            return
+                Settings.System.getInt
+                (ctx.getContentResolver(),
+                 "airplane_mode_on", 0) == 0;
+        }
+        else {
+            return
+                Settings.Secure.getInt
+                (ctx.getContentResolver(),
+                 "wifi_disabled", 0) == 0;
+        }            
     }
 
     // This one uses reflection to poke at some
@@ -24,9 +33,9 @@ public class ConnectUtils
     // the wifi.
 
     public final static WifiLock newWifiLock
-        (Context ctx, String tag)
+        (Context ctx, String tag, boolean use3g)
     {
-        if (!wifiEnabled(ctx)) {
+        if (!wifiEnabled(ctx, use3g)) {
             return null;
         }
 
@@ -74,9 +83,9 @@ public class ConnectUtils
     }
 
     public final static boolean waitForService
-        (Context ctx, long timeout)
+        (Context ctx, long timeout, boolean use3g)
     {
-        if (!wifiEnabled(ctx)) {
+        if (!wifiEnabled(ctx, use3g)) {
             return false;
         }
 
@@ -89,7 +98,7 @@ public class ConnectUtils
         long cur =  System.currentTimeMillis();
 
         if (dontBotherMe(cur)) {
-            Log.d(TAG, "Wont yet recheck wifi after last failure");
+            Log.d(TAG, "Wont yet recheck network after last failure");
             return false;
         }
 
@@ -102,8 +111,8 @@ public class ConnectUtils
             sleepinterval = timeout;
         }
 
-        Log.d(TAG, "Waiting for wifi connection...");
-        while (!isConnected(cm)) {
+        Log.d(TAG, "Waiting for network connection...");
+        while (!isConnected(cm, use3g)) {
             try { Thread.currentThread().sleep(sleepinterval); }
             catch (InterruptedException iex) { return false; }
             cur = System.currentTimeMillis();
@@ -121,16 +130,18 @@ public class ConnectUtils
     private final static synchronized boolean dontBotherMe(long now)
     { return (now < s_botherme); }
 
-    private final static boolean isConnected(ConnectivityManager cm)
+    private final static boolean isConnected
+        (ConnectivityManager cm, boolean use3g)
     {
         NetworkInfo ni = cm.getActiveNetworkInfo();
 
-        // Log.d(TAG, "Network info is "+ni);
         // return true; // for emulator
 
         if (ni == null) { return false; }
-        if (ni.getType() != ConnectivityManager.TYPE_WIFI) {
-            return false;
+        if (!use3g) {
+            if (ni.getType() != ConnectivityManager.TYPE_WIFI) {
+                return false;
+            }
         }
         return ni.isConnected();
     }
