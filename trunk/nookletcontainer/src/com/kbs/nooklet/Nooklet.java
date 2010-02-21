@@ -67,7 +67,7 @@ public class Nooklet extends Activity
         if (m_powerlock != null) {
             m_powerlock.acquire(m_powerdelay);
         }
-        NookUtils.setAppTitle(this, "Nooklets");
+        NookUtils.setAppTitle(this, Version.VERSION);
 
         loadNooklets();
     }
