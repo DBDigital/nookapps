@@ -18,7 +18,7 @@ This one is more dull to watch, but it gets a little better if you're actually p
 = Installing =
 Please download [http://nookapps.googlecode.com/files/nooklets.zip the sample nooklets] and unzip it to the root of your internal SD card from your PC. When it's over, you should find a folder called `nooklets/` at the root of your internal SD card.
 
-Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.apk the Nooklet container apk] and add it to your launcher. If it all goes well, you should find three sample applications. Many thanks to [http://jf.andblogs.net/ JesusFreke] for letting me pinch his moniker of "Noodoku" for the sudoku application, and to [http://odbloc.info/ klayman] for designing the Nooklet icon.
+Next, download and install [http://nookapps.googlecode.com/files/Nooklet-debug.apk the Nooklet container apk] and add it to your launcher. If it all goes well, you should find three sample applications. Many thanks to [http://jf.andblogs.net/ JesusFreke] for letting me pinch his moniker of "Noodoku" for the sudoku application, and to [http://odbloc.info/ klaymen] for designing the Nooklet icon.
 
 = Writing nooklets =
 
