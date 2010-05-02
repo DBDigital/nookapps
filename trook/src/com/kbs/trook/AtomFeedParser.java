@@ -142,6 +142,7 @@ public class AtomFeedParser
                 else if ("link".equals(curtag)) {
                     FeedInfo.LinkInfo li = parseLink(p);
                     ei.addLink(li);
+                    // Log.d(TAG, "adding link "+li.toString());
                     if (isThumbnailLink(li)) {
                         ei.setIconUri(li.getAttribute("href"));
                     }
@@ -254,6 +255,7 @@ public class AtomFeedParser
             ((rel != null) &&
              ("http://opds-spec.org/thumbnail".equals(rel) ||
               "http://opds-spec.org/opds-cover-image-thumbnail".equals(rel) ||
+              "http://opds-spec.org/cover-thumbnail".equals(rel) ||
               "x-stanza-cover-image-thumbnail".equals(rel)));
     }
 

@@ -720,6 +720,8 @@ public class Trook extends Activity
     // This should only be called from the UI thread
     public final void addFeedEntry(FeedInfo.EntryInfo ei)
     {
+        // Log.d(TAG, "adding feed entry "+ei.getId());
+
         FeedInfo fi = ei.getFeedInfo();
         // Only add if we have it cached somewhere
         FeedViewCache.FeedView fv =
@@ -727,6 +729,12 @@ public class Trook extends Activity
         if (fv == null) {
             // ignore
             return;
+        }
+
+        URI base = null;
+        try { base = new URI(fi.getUri()); }
+        catch (Throwable ign) {
+            Log.d(TAG, "Ignoring base error ", ign);
         }
 
         ViewGroup el = (ViewGroup)
@@ -741,11 +749,23 @@ public class Trook extends Activity
         if (iuri != null) {
             // Log.d(TAG, "Found icon uri = "+iuri);
             Uri uri = Uri.parse(iuri);
+            // If the uri is relative, and the base is a "file" scheme,
+            // first make the uri absolute.
+            if (!(uri.isAbsolute()) &&
+                (base != null) &&
+                ("file".equals(base.getScheme()))) {
+                uri = Uri.parse(URIUtils.resolve(base, iuri).toString());
+            }
+
+            // Log.d(TAG, "And the icon uri is "+uri);
             if ("file".equals(uri.getScheme())) {
                 // Surprisingly, this takes a path rather
                 // than a URI
                 doit.setImageURI(Uri.parse(uri.getPath()));
                 iuri_set = true;
+            }
+            else {
+                // Log.d(TAG, "Could not set image uri because "+uri.getScheme());
             }
         }
 
@@ -767,6 +787,7 @@ public class Trook extends Activity
             }
 
             String type = li.getAttribute("type");
+            // Log.d(TAG, "Examining type for "+uriref+" = "+type);
 
             if (isABook(type) ||
                 isAnAudio(type) ||
@@ -777,6 +798,8 @@ public class Trook extends Activity
                 // is remote or local
 
                 boolean islocal = "file".equals(uriref.getScheme());
+
+                // Log.d(TAG, uriref+" -- local= "+islocal);
 
                 if (islocal) {
                     doit.setOnClickListener
@@ -813,15 +836,30 @@ public class Trook extends Activity
             else if (IMimeConstants.MIME_ATOM_XML.equals(type)) {
                 doit.setOnClickListener
                     (new LaunchFeed(baseuri, href));
-                doit.setImageResource(R.drawable.feed);
+                if (!iuri_set) {
+                    doit.setImageResource(R.drawable.feed);
+                }
                 did_something = true;
-                break;
+                // Keep looking, in case there's a better fit.
+                // break;
+            }
+            else if (IMimeConstants.MIME_ATOM_XML_LIBRARY.equals(type)) {
+                doit.setOnClickListener
+                    (new LaunchFeed(baseuri, href));
+                if (!iuri_set) {
+                    doit.setImageResource(R.drawable.library);
+                }
+                did_something = true;
+                // Keep looking, in case there's a better fit.
+                // break;
             }
             else if (IMimeConstants.MIME_HTML.equals(type) ||
                      IMimeConstants.MIME_XHTML.equals(type) ||
                      null == type) {
                 doit.setOnClickListener(new LaunchBrowser(href));
-                doit.setImageResource(R.drawable.webkit);
+                if (!iuri_set) {
+                    doit.setImageResource(R.drawable.webkit);
+                }
                 did_something = true;
                 String pr = li.getAttribute("preferred");
                 if ("true".equals(pr)) {
@@ -1179,7 +1217,19 @@ public class Trook extends Activity
         public void onClick(View v)
         {
             Intent ri = new Intent(m_intent);
-            ri.setDataAndType(Uri.parse(m_uri.toString()), m_type);
+
+            // pdb files seem to have a bug -- they seem to
+            // require decoded uris.
+
+            String suri;
+            if (IMimeConstants.MIME_PDB.equals(m_type)) {
+                suri = Uri.decode(m_uri.toString());
+            }
+            else {
+                suri = m_uri.toString();
+            }
+
+            ri.setDataAndType(Uri.parse(suri), m_type);
             try { Trook.this.startActivity(ri); }
             catch (Throwable th) {
                 Log.d(TAG, "Unable to view "+m_uri+", ("+m_type+")", th);
@@ -1306,7 +1356,10 @@ public class Trook extends Activity
 
             Log.d(TAG, "checking if there's someone who can process "+
                   msg);
-            if (Trook.this.isIntentAvailable(msg)) {
+            // 1.3 -- native browser doesn't exit activity, it goes all the
+            // way back to root. ugh.
+            //if (Trook.this.isIntentAvailable(msg)) {
+            if (false) {
                 Trook.this.startActivity(msg);
             }
             else {
@@ -1476,4 +1529,3 @@ public class Trook extends Activity
     // 
 
 }
-
