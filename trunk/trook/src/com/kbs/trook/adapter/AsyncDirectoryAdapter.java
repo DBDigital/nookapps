@@ -306,9 +306,30 @@ public class AsyncDirectoryAdapter
 
     private final void processDirectory(File f)
     {
+
+        // First check for any special directories.
+        // Right now, only look for "library" directories,
+        // which are named "xxx.library", and must contain
+        // a file <dir>/_catalog/catalog.xml
+        String dn = f.getName();
+        if (dn.endsWith(".library")) {
+            // Verify if we have the magic file.
+            File magic = new File(f, "_catalog/catalog.xml");
+            if (magic.canRead()) {
+                // Use this file as an OPDS browser for this
+                // directory, rather than the standard one.
+                String n = dn.substring(0, dn.length()-8);
+                processAsMime(magic, n, IMimeConstants.MIME_ATOM_XML_LIBRARY);
+                return;
+            }
+        }
+
+        // This is a regular directory
         FeedInfo.EntryInfo ei = new FeedInfo.EntryInfo(m_fi);
-        ei.setTitle(f.getName());
+        ei.setTitle(dn);
+
         String uriref = Uri.fromFile(f).toString();
+
         FeedInfo.LinkInfo li = new FeedInfo.LinkInfo();
         li.setAttribute("href", uriref);
         li.setAttribute("type", IMimeConstants.MIME_TROOK_DIRECTORY);
