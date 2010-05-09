@@ -4,11 +4,11 @@
   <title>Trook news, documentation</title>
   <author><name>Trook</name></author>
   <entry>
-    <title>Trook rev53</title>
+    <title>Trook rev68</title>
     <link type="application/vnd.android.package-archive"
           href="http://nookapps.googlecode.com/files/Trook-debug.apk"/>
     <id>http://nookapps.googlecode.com/files/Trook-debug.apk</id>
-    <content type="text">Revision 53 is a small bug-fix revision, and changes the settings from a menu to a "flip". Oh, and yes. The easter egg for this release is an option to use 3G, for those of you who've swapped out your sim cards.</content>
+    <content type="text">Revision 68 is another small bug-fix revision. Oh, and one more thing... it integrates with calibre2opds (2.2 upwards) which exports your Calibre collection directly onto the nook along with tags, authors, book blurbs, images etc allowing you to navigate through large numbers of books conveniently.</content>
 
   </entry>
   <entry>
